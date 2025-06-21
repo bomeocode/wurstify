@@ -1,20 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-
-  <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/assets/bootstrap-icons/bootstrap-icons.css">
-  <link rel="stylesheet" href="/assets/css/style.css">
-
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#3367D6">
-</head>
-
-<body>
   <?php if (auth()->user()): ?>
     <div class="mb-3">
       <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm" style="background-color: #3a2e28;">
