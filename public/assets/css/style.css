@@ -1,0 +1,49 @@
+/* Stile für den gekürzten Dateinamen in der Medienliste */
+.media-filename {
+  /* Wichtig, damit overflow funktioniert */
+  display: inline-block;
+
+  /* Verhindere den Zeilenumbruch des Textes */
+  white-space: nowrap;
+
+  /* Verstecke den Text, der über den Rand hinausgeht */
+  overflow: hidden;
+
+  /* Füge die '...' am Ende des sichtbaren Textes hinzu */
+  text-overflow: ellipsis;
+
+  /* Verbessert die vertikale Ausrichtung neben den anderen Infos */
+  vertical-align: middle;
+
+  /* Setze eine maximale Breite. Passe diesen Wert nach Bedarf an. */
+  max-width: 300px;
+}
+
+/* Für kleinere Bildschirme (z.B. unter 576px) können wir die maximale Breite weiter reduzieren */
+@media (max-width: 575.98px) {
+  .media-filename {
+    max-width: 150px; /* Eine kürzere maximale Breite für Handys */
+  }
+}
+
+/* Stile für den Thumbnail-Container in der Medienliste */
+.media-thumbnail {
+  flex-shrink: 0; /* Verhindert, dass das Thumbnail bei Platzmangel schrumpft */
+  width: 64px;
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f9fa; /* Heller Hintergrund für Icons */
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+}
+
+/* Sorgt dafür, dass Bilder den Thumbnail-Bereich schön ausfüllen, ohne sich zu verzerren */
+.media-thumbnail img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+}

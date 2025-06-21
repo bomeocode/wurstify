@@ -1,0 +1,35 @@
+#------------------------------------------------------------------
+# CodeIgniter 4
+#
+# Wichtig: niemals sensible Daten in ein Repository pushen!
+# Die .env Datei enthält Passwörter und Schlüssel.
+#------------------------------------------------------------------
+/.env
+/builds
+
+#------------------------------------------------------------------
+# Composer
+#
+# Der vendor-Ordner wird von Composer verwaltet.
+# Er ist riesig und gehört nicht ins Repository.
+#------------------------------------------------------------------
+/vendor/
+composer.lock
+
+#------------------------------------------------------------------
+# Schreibbare Verzeichnisse
+#
+# Caches, Logs und Sessions sind temporäre Daten.
+#------------------------------------------------------------------
+/writable/
+/public/uploads/
+
+#------------------------------------------------------------------
+# IDE- und System-Dateien
+#------------------------------------------------------------------
+/.idea/
+/.vscode/
+*.bak
+*.swp
+Thumbs.db
+.DS_Store
