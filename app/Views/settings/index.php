@@ -1,6 +1,6 @@
 <?= $this->extend('layouts/main_light') ?>
 
-<?= $this->section('title') ?>EduScreen - Einstellungen<?= $this->endSection() ?>
+<?= $this->section('title') ?>Wurstify - Einstellungen<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 

@@ -1,6 +1,6 @@
 <?= $this->extend('layouts/main_light') ?>
 
-<?= $this->section('title') ?>EduScreen - Dashboard<?= $this->endSection() ?>
+<?= $this->section('title') ?>Wurstify - Dashboard<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
