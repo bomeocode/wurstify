@@ -4,16 +4,16 @@
 
 <?= $this->section('main') ?>
 
-<div class="container d-flex justify-content-center p-5">
-    <div class="card col-12 col-md-5 shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title mb-5"><?= lang('Auth.useMagicLink') ?></h5>
+<img src="<?= site_url('assets/img/logo.png') ?>" class="rounded mx-auto d-block mb-5 mt-5" style="width:150px;" alt="">
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-5"><?= lang('Auth.useMagicLink') ?></h5>
 
-            <p><b><?= lang('Auth.checkYourEmail') ?></b></p>
+        <p><b><?= lang('Auth.checkYourEmail') ?></b></p>
 
-            <p><?= lang('Auth.magicLinkDetails', [setting('Auth.magicLinkLifetime') / 60]) ?></p>
-        </div>
+        <p><?= lang('Auth.magicLinkDetails', [setting('Auth.magicLinkLifetime') / 60]) ?></p>
     </div>
 </div>
+
 
 <?= $this->endSection() ?>
