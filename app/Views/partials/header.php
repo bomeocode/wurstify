@@ -17,11 +17,11 @@
 <body>
   <?php if (auth()->user()): ?>
     <div class="mb-3">
-      <nav class="navbar navbar-expand-lg fixed-top shadow-sm" style="background-color: #e0f0ff;">
+      <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm" style="background-color: #3a2e28;">
         <div class="container-fluid">
 
           <a class="navbar-brand" href="#">
-            EduScreen
+            Wurstify
           </a>
 
           <?php if ($currentController == 'Screens'): ?>
@@ -40,7 +40,7 @@
                 <a class="nav-link" href="<?= base_url('me') ?>">Profil</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="<?= base_url('account') ?>">Konto</a>
+                <a class="nav-link" href="<?= base_url('settings') ?>">Einstellungen</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('logout') ?>">Logout</a>

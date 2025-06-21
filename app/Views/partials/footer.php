@@ -1,6 +1,6 @@
 <?php if (auth()->user()): ?>
   <!-- Bottom-Navigation -->
-  <nav class="navbar navbar-expand fixed-bottom pb-4" style="background-color: #1B5071;">
+  <nav class="navbar navbar-expand fixed-bottom pb-4" style="background-color: #3a2e28;">
     <div class="container-fluid justify-content-around">
 
       <a class="nav-link text-center text-white" href="<?= site_url('dashboard') ?>">
@@ -9,28 +9,22 @@
         <small>Start</small>
       </a>
 
-      <a class="nav-link text-center text-white" href="<?= site_url('screens') ?>">
-        <?php echo $currentController == 'Screens' ? '<i class="bi bi-display-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-display fs-4 d-block mx-auto mb-1"></i>';
+      <a class="nav-link text-center text-white" href="<?= site_url('ratings') ?>">
+        <?php echo $currentController == 'Ratings' ? '<i class="bi bi-star-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-star fs-4 d-block mx-auto mb-1"></i>';
         ?>
-        <small>Bildschirme</small>
+        <small>Bewerten</small>
       </a>
 
-      <a class="nav-link text-center text-white" href="<?= site_url('layouts') ?>">
-        <?php echo $currentController == 'Layouts' ? '<i class="bi bi-grid-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-grid fs-4 d-block mx-auto mb-1"></i>';
+      <a class="nav-link text-center text-white" href="<?= site_url('feed') ?>">
+        <?php echo $currentController == 'Feed' ? '<i class="bi bi-postcard-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-postcard fs-4 d-block mx-auto mb-1"></i>';
         ?>
-        <small>Layouts</small>
+        <small>Feed</small>
       </a>
 
-      <a class="nav-link text-center text-white" href="<?= site_url('media') ?>">
-        <?php echo $currentController == 'Media' ? '<i class="bi bi-collection-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-collection fs-4 d-block mx-auto mb-1"></i>';
+      <a class="nav-link text-center text-white" href="<?= site_url('merch') ?>">
+        <?php echo $currentController == 'Merch' ? '<i class="bi bi-bag-heart-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-bag-heart fs-4 d-block mx-auto mb-1"></i>';
         ?>
-        <small>Medien</small>
-      </a>
-
-      <a class="nav-link text-center text-white" href="<?= site_url('settings') ?>">
-        <?php echo $currentController == 'Settings' ? '<i class="bi bi-gear-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-gear fs-4 d-block mx-auto mb-1"></i>';
-        ?>
-        <small>Einstellungen</small>
+        <small>Merch</small>
       </a>
 
     </div>

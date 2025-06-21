@@ -1,10 +1,10 @@
 <?= $this->extend('layouts/main_light') ?>
 
-<?= $this->section('title') ?>EduScreen - Dashboard<?= $this->endSection() ?>
+<?= $this->section('title') ?>Wurstify - Bewerten<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
-<h1>Willkommen im Dashboard, <?= esc($user->username) ?>!</h1>
+<h1>Bewerten</h1>
 <a href="/logout">Abmelden</a>
 <hr>
 

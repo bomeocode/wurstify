@@ -12,6 +12,6 @@ class Dashboard extends BaseController
         // Helfer-Funktion, um auf den eingeloggten Benutzer zuzugreifen
         $data['user'] = auth()->user();
 
-        return view('pages/dashboard/index_view', $data);
+        return view('dashboard/index', $data);
     }
 }

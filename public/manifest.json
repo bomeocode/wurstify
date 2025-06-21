@@ -1,11 +1,11 @@
 {
-  "name": "EduScreen",
-  "short_name": "EduScreen",
-  "description": "Digital Signage für Schulen",
+  "name": "Wurstify",
+  "short_name": "Wurstify",
+  "description": "Sterne für die Wurst",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3367D6",
+  "background_color": "#fdf8f0",
+  "theme_color": "#fd7e14",
   "icons": [
     {
       "src": "/assets/icons/icon-192x192.png",

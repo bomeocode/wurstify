@@ -1,3 +1,63 @@
+/*
+=====================================================
+  Bootstrap "Bratwurst-Grillfest" - Direkte Zuweisung
+=====================================================
+*/
+
+/* Globale Variablen, die funktioniert haben, können wir behalten */
+:root {
+  --bs-primary: #ffc107;
+  --bs-secondary: #495057;
+  --bs-success: #28a745;
+  --bs-danger: #dc3545;
+  --bs-warning: #fd7e14;
+  --bs-info: #17a2b8;
+  --bs-light: #fdf8f0;
+  --bs-dark: #3a2e28;
+  --bs-body-font-family: "Georgia", "Times New Roman", serif;
+}
+
+/* Grundfarben für die Seite */
+body {
+  background-color: var(--bs-light);
+  color: var(--bs-dark);
+}
+
+/*
+  DIES IST DER NEUE, WICHTIGE TEIL:
+  Wir weisen den Komponenten ihre Farben direkt zu.
+  Das ist spezifischer und "gewinnt" gegen die Standardwerte.
+*/
+
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: #e0a800; /* Etwas dunkleres Gelb für Hover */
+  --bs-btn-hover-border-color: #c69500;
+  --bs-btn-color: var(--bs-dark); /* Dunkler Text für Lesbarkeit */
+  --bs-btn-hover-color: var(--bs-dark);
+  --bs-btn-active-bg: #c69500; /* Noch dunkler für Klick-Effekt */
+  --bs-btn-active-border-color: #c69500;
+}
+
+.btn-secondary {
+  --bs-btn-bg: var(--bs-secondary);
+  --bs-btn-border-color: var(--bs-secondary);
+  --bs-btn-hover-bg: #5a6268;
+  --bs-btn-hover-border-color: #545b62;
+  --bs-btn-color: #fff; /* Heller Text auf dunklem Grund */
+  --bs-btn-hover-color: #fff;
+}
+
+/* Das gleiche Prinzip für Alerts */
+.alert-success {
+  --bs-alert-bg: #d4edda;
+  --bs-alert-border-color: #c3e6cb;
+  --bs-alert-color: #155724;
+}
+
+/* ...und so weiter für jede Komponente, die Sie anpassen möchten. */
+
 /* Stile für den gekürzten Dateinamen in der Medienliste */
 .media-filename {
   /* Wichtig, damit overflow funktioniert */

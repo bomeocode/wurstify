@@ -5,11 +5,11 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class Settings extends BaseController
+class Ratings extends BaseController
 {
     public function index()
     {
         $data = [];
-        return view('settings/index', $data);
+        return view('ratings/index', $data);
     }
 }
