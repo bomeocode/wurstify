@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\RatingModel;
+use Config\Services;
 
 class Ratings extends BaseController
 {
@@ -34,20 +35,93 @@ class Ratings extends BaseController
             'rating_service' => 'required|in_list[1,2,3,4,5]',
         ];
 
-        // 2. Validierung durchführen
         if (!$this->validate($rules)) {
-            // Bei Validierungsfehlern: Zurück zum Formular und Fehler in Flashdata speichern.
-            // Wir übergeben die Fehler als einzelne Nachricht für den Toast.
             $errors = $this->validator->getErrors();
-            //return redirect()->back()->withInput()->with('error', array_values($errors)[0]);
             session()->setFlashdata('toast', [
                 'message' => array_values($errors)[0],
                 'type'    => 'error'
             ]);
-            return redirect()->back();
+            return redirect()->back()->withInput();
+            //return redirect()->back()->withInput()->with('error', array_values($errors)[0]);
         }
 
-        // 3. Daten für die Datenbank vorbereiten
+        $latitude = $this->request->getPost('latitude');
+        $longitude = $this->request->getPost('longitude');
+        $manualAddress = $this->request->getPost('address_manual');
+
+        // NEU: Geocoding-Logik mit der Google API
+        if (empty($latitude) && !empty($manualAddress)) {
+            try {
+                $apiKey = getenv('google.apiKey'); // API-Schlüssel sicher aus .env laden
+                if (empty($apiKey)) {
+                    throw new \Exception('Google API Key not found in .env file.');
+                }
+
+                $client = \Config\Services::curlrequest([
+                    'baseURI' => 'https://maps.googleapis.com/maps/api/',
+                    'timeout' => 5,
+                ]);
+
+                $response = $client->get('geocode/json', [
+                    'query' => [
+                        'address' => $manualAddress,
+                        'key'     => $apiKey,
+                        'region'  => 'de' // Ergebnisse für Deutschland bevorzugen
+                    ],
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $result = json_decode($response->getBody(), true);
+
+                    // Google's Antwort-Struktur prüfen
+                    if ($result['status'] === 'OK' && !empty($result['results'])) {
+                        $firstResult = $result['results'][0];
+
+                        // Wir akzeptieren nur Ergebnisse, die eine gewisse Genauigkeit haben.
+                        // 'APPROXIMATE' deutet auf ein ungenaues Ergebnis hin.
+                        if ($firstResult['geometry']['location_type'] === 'APPROXIMATE') {
+                            // Adresse ist zu ungenau (z.B. nur "Deutschland")
+                            $toastData = [
+                                'message' => 'Die Adresse ist zu ungenau. Bitte gib mehr Details an.',
+                                'type'    => 'danger'
+                            ];
+                            return redirect()->back()->withInput()->with('toast', $toastData);
+                            // return redirect()->back()->withInput()->with('error', 'Die Adresse ist zu ungenau. Bitte geben Sie mehr Details an.');
+                        }
+
+                        // Erfolg! Koordinaten extrahieren.
+                        $location = $firstResult['geometry']['location'];
+                        $latitude = $location['lat'];
+                        $longitude = $location['lng'];
+                    } else {
+                        // Adresse nicht gefunden (Status ist z.B. 'ZERO_RESULTS')
+                        $toastData = [
+                            'message' => 'Die eingegebene Adresse konnte nicht gefunden werden.',
+                            'type'    => 'danger'
+                        ];
+                        return redirect()->back()->withInput()->with('toast', $toastData);
+                        //return redirect()->back()->withInput()->with('error', 'Die eingegebene Adresse konnte nicht gefunden werden.');
+                    }
+                } else {
+                    $toastData = [
+                        'message' => 'Der Google Geocoding-Dienst ist zurzeit nicht erreichbar.',
+                        'type'    => 'danger'
+                    ];
+                    return redirect()->back()->withInput()->with('toast', $toastData);
+                    //return redirect()->back()->withInput()->with('error', 'Der Google Geocoding-Dienst ist zurzeit nicht erreichbar.');
+                }
+            } catch (\Exception $e) {
+                log_message('error', '[Geocoding] ' . $e->getMessage());
+                $toastData = [
+                    'message' => 'Ein technischer Fehler bei der Adressprüfung ist aufgetreten.',
+                    'type'    => 'danger'
+                ];
+                return redirect()->back()->withInput()->with('toast', $toastData);
+                // return redirect()->back()->withInput()->with('error', 'Ein technischer Fehler bei der Adressprüfung ist aufgetreten.');
+            }
+        }
+
+        // Daten für die Datenbank vorbereiten (jetzt mit potenziell neuen Koordinaten)
         $data = [
             'user_id'             => auth()->id(),
             'vendor_name'         => $this->request->getPost('vendor_name'),
@@ -57,30 +131,26 @@ class Ratings extends BaseController
             'rating_price'        => $this->request->getPost('rating_price'),
             'rating_service'      => $this->request->getPost('rating_service'),
             'comment'             => $this->request->getPost('comment'),
-            'latitude'            => $this->request->getPost('latitude') ?: null,
-            'longitude'           => $this->request->getPost('longitude') ?: null,
-            'address_manual'      => $this->request->getPost('address_manual'),
+            'latitude'            => $latitude,
+            'longitude'           => $longitude,
+            'address_manual'      => $manualAddress,
         ];
 
         // 4. Daten speichern UND den Erfolg prüfen
         $ratingModel = new \App\Models\RatingModel();
 
         if ($ratingModel->insert($data)) {
-            session()->setFlashdata('toast', [
+            $toastData = [
                 'message' => 'Vielen Dank für deine Bewertung!',
                 'type'    => 'success'
-            ]);
-            return redirect()->to('/');
-            // ERFOLG! Zurückleiten mit Erfolgsmeldung für den Toast.
-            // return redirect()->to('/')->with('message', 'Vielen Dank für deine Bewertung!');
+            ];
+            return redirect()->to('/')->with('toast', $toastData);;
         }
 
-        // FEHLER BEIM SPEICHERN! Zurückleiten mit Fehlermeldung für den Toast.
-        //return redirect()->back()->withInput()->with('error', 'Beim Speichern der Bewertung ist ein Fehler aufgetreten.');
-        session()->setFlashdata('toast', [
+        $toastData = [
             'message' => 'Beim Speichern der Bewertung ist ein Fehler aufgetreten.',
             'type'    => 'error'
-        ]);
-        return redirect()->back();
+        ];
+        return redirect()->back()->with('toast', $toastData);;
     }
 }

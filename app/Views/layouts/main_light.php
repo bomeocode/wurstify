@@ -12,8 +12,10 @@
   <link rel="stylesheet" href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>">
   <link rel="stylesheet" href="<?= base_url('assets/bootstrap-icons/bootstrap-icons.css') ?>">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
-  <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
-
+  <?php if ($currentController == 'Dashboard'): ?>
+    <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  <?php endif; ?>
   <link rel="manifest" href="<?= base_url('manifest.json') ?>">
   <meta name="theme-color" content="#ffc107">
 </head>
@@ -42,6 +44,7 @@
         'danger'  => 'bg-danger text-white',
         'warning' => 'bg-warning text-dark',
         'info'    => 'bg-info text-dark',
+        'error'  => 'bg-danger text-white',
       ][$type];
       ?>
 

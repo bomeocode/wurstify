@@ -36,12 +36,12 @@
 
 <div id="manual-address-section" class="mb-3" style="display: none;">
   <label for="address_manual" class="form-label">Adresse des Anbieters</label>
-  <input type="text" class="form-control" name="address_manual" id="address_manual" placeholder="z.B. Musterstraße 1, 12345 Musterstadt">
+  <input type="text" class="form-control" value="<?= old('address_manual', '') ?>" name="address_manual" id="address_manual" placeholder="z.B. Musterstraße 1, 12345 Musterstadt">
 </div>
 
 <div class="mb-3">
   <label for="vendor_name" class="form-label">Name / Titel des Anbieters*</label>
-  <input type="text" list="nearby-places" class="form-control" name="vendor_name" id="vendor_name" required placeholder="z.B. Bratworscht-Express Cuxhaven">
+  <input type="text" list="nearby-places" class="form-control" value="<?= old('vendor_name', '') ?>" name="vendor_name" id="vendor_name" required placeholder="z.B. Bratworscht-Express Cuxhaven">
   <datalist id="nearby-places"></datalist>
 </div>
 
@@ -59,18 +59,25 @@ $categories = [
   <div class="mb-3">
     <label class="form-label"><?= $label ?>*</label>
     <div class="star-rating">
-      <input type="radio" id="<?= $field ?>-5" name="<?= $field ?>" value="5" required class="visually-hidden" /><label for="<?= $field ?>-5">★</label>
-      <input type="radio" id="<?= $field ?>-4" name="<?= $field ?>" value="4" class="visually-hidden" /><label for="<?= $field ?>-4">★</label>
-      <input type="radio" id="<?= $field ?>-3" name="<?= $field ?>" value="3" class="visually-hidden" /><label for="<?= $field ?>-3">★</label>
-      <input type="radio" id="<?= $field ?>-2" name="<?= $field ?>" value="2" class="visually-hidden" /><label for="<?= $field ?>-2">★</label>
-      <input type="radio" id="<?= $field ?>-1" name="<?= $field ?>" value="1" class="visually-hidden" /><label for="<?= $field ?>-1">★</label>
+      <?php for ($i = 5; $i >= 1; $i--): ?>
+        <input
+          type="radio"
+          id="<?= esc($field) ?>-<?= $i ?>"
+          name="<?= esc($field) ?>"
+          value="<?= $i ?>"
+          class="visually-hidden"
+          <?php if ($i === 5) echo 'required'; // 'required' nur für einen Button in der Gruppe 
+          ?>
+          <?= old($field) == $i ? 'checked' : '' /* DIE MAGISCHE ZEILE */ ?>>
+        <label for="<?= esc($field) ?>-<?= $i ?>">★</label>
+      <?php endfor; ?>
     </div>
   </div>
 <?php endforeach; ?>
 
 <div class="mb-3">
   <label for="comment" class="form-label">Optionaler Kommentar</label>
-  <textarea class="form-control" name="comment" id="comment" rows="3"></textarea>
+  <textarea class="form-control" name="comment" id="comment" rows="3"><?= old('comment', '') ?></textarea>
 </div>
 
 <button type="submit" class="btn btn-primary">Bewertung absenden</button>
