@@ -1,87 +1,60 @@
+// JavaScript für die ratings/new Seite
+
 document.addEventListener("DOMContentLoaded", function () {
-  const locationSection = document.getElementById("location-section");
-  const manualAddressSection = document.getElementById(
-    "manual-address-section"
-  );
-  const skipLocationBtn = document.getElementById("skip-location");
+  const useLocationBtn = document.getElementById("use-current-location");
+  const addressField = document.getElementById("address_manual");
+  const statusText = document.getElementById("location-status");
 
-  const latField = document.getElementById("latitude");
-  const lonField = document.getElementById("longitude");
-  const placesDatalist = document.getElementById("nearby-places");
+  useLocationBtn.addEventListener("click", () => {
+    if (!("geolocation" in navigator)) {
+      statusText.textContent =
+        "Ortungsdienste werden von Ihrem Browser nicht unterstützt.";
+      statusText.className = "text-danger";
+      return;
+    }
 
-  // Funktion, um zur manuellen Eingabe zu wechseln
-  function showManualAddress() {
-    locationSection.style.display = "none";
-    manualAddressSection.style.display = "block";
-  }
+    statusText.textContent = "Standort wird ermittelt...";
+    statusText.className = "text-muted";
 
-  skipLocationBtn.addEventListener("click", showManualAddress);
-
-  // 1. Versuche, die Geo-Location abzufragen
-  if ("geolocation" in navigator) {
+    // 1. Hole die aktuellen Koordinaten
     navigator.geolocation.getCurrentPosition(
-      // SUCCESS-Callback
       (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+        const { latitude, longitude } = position.coords;
 
-        // Versteckte Felder befüllen
-        latField.value = lat;
-        lonField.value = lon;
-
-        locationSection.innerHTML = `<p class="text-success">Standort erfasst: Lat: ${lat.toFixed(
-          4
-        )}, Lon: ${lon.toFixed(4)}</p>`;
-
-        // 2. ORTE IN DER NÄHE VORSCHLAGEN (API-Aufruf)
-        fetchNearbyPlaces(lat, lon);
+        // 2. Führe Reverse Geocoding durch, um die Adresse zu bekommen
+        // Wir verwenden hier wieder die kostenlose Nominatim API
+        fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data && data.display_name) {
+              // Erfolg! Fülle das Adressfeld mit dem Ergebnis
+              addressField.value = data.display_name;
+              statusText.textContent =
+                "Standort erfolgreich als Adresse eingefügt.";
+              statusText.className = "text-success";
+            } else {
+              throw new Error(
+                "Adresse konnte nicht aus Koordinaten umgewandelt werden."
+              );
+            }
+          })
+          .catch((error) => {
+            console.error("Reverse Geocoding Fehler:", error);
+            statusText.textContent = "Fehler beim Abrufen der Adresse.";
+            statusText.className = "text-danger";
+          });
       },
-      // ERROR-Callback
       (error) => {
-        console.error("Geolocation Error:", error.message);
-        locationSection.innerHTML =
-          '<p class="text-danger">Standort konnte nicht ermittelt werden. Bitte geben Sie eine Adresse ein.</p>';
-        showManualAddress();
+        let message = "Ein unbekannter Fehler ist aufgetreten.";
+        if (error.code === 1) message = "Zugriff auf Standort verweigert.";
+        if (error.code === 2) message = "Standort nicht verfügbar.";
+        if (error.code === 3) message = "Timeout bei der Standortabfrage.";
+
+        statusText.textContent = message;
+        statusText.className = "text-danger";
       }
     );
-  } else {
-    // Geolocation wird nicht unterstützt
-    console.log("Geolocation wird von diesem Browser nicht unterstützt.");
-    showManualAddress();
-  }
-
-  /**
-   * Fragt Orte in der Nähe über die Nominatim API (OpenStreetMap) ab.
-   * WICHTIG: Beachten Sie die Nutzungsbedingungen von Nominatim! (Nicht mehr als 1 Anfrage/Sekunde)
-   * Für kommerzielle Projekte eine andere API wie Google Places in Betracht ziehen.
-   */
-  function fetchNearbyPlaces(lat, lon) {
-    // Wir suchen nach Restaurants, Imbissen etc. im Umkreis von ca. 500m
-    const radius = 0.005;
-    const query = `[out:json];(node["amenity"~"restaurant|fast_food|food_court|cafe|biergarten"](around:500,${lat},${lon});way["amenity"~"restaurant|fast_food|food_court|cafe|biergarten"](around:500,${lat},${lon}););out;`;
-
-    fetch(
-      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
-        query
-      )}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        placesDatalist.innerHTML = ""; // Alte Vorschläge löschen
-        const places = new Set(); // Um Duplikate zu vermeiden
-
-        data.elements.forEach((element) => {
-          if (element.tags && element.tags.name) {
-            places.add(element.tags.name);
-          }
-        });
-
-        places.forEach((name) => {
-          const option = document.createElement("option");
-          option.value = name;
-          placesDatalist.appendChild(option);
-        });
-      })
-      .catch((error) => console.error("Fehler beim Abrufen der Orte:", error));
-  }
+  });
 });

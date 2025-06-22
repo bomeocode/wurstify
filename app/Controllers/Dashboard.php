@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Models\RatingModel; // Model einbinden
+use App\Models\VendorModel; // Model einbinden
 
 // use App\Controllers\BaseController;
 // use CodeIgniter\HTTP\ResponseInterface;
@@ -11,15 +11,13 @@ class Dashboard extends BaseController
 {
     public function index()
     {
-        // Helfer-Funktion, um auf den eingeloggten Benutzer zuzugreifen
-        $data['user'] = auth()->user();
+        $vendorModel = new VendorModel();
 
-        // NEU: Lade alle Bewertungen, die Koordinaten haben
-        $ratingModel = new RatingModel();
-        $data['ratings'] = $ratingModel
-            ->where('latitude IS NOT NULL')
-            ->where('longitude IS NOT NULL')
-            ->findAll();
+        $data = [
+            'user'    => auth()->user(),
+            // Wir übergeben jetzt die Liste der Anbieter mit Durchschnitts-Ratings
+            'vendors' => $vendorModel->getVendorsWithAverageRatings()
+        ];
 
         return view('dashboard/index', $data);
     }

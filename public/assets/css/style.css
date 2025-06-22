@@ -15,6 +15,10 @@
   --bs-light: #fdf8f0;
   --bs-dark: #3a2e28;
   --bs-body-font-family: "Georgia", "Times New Roman", serif;
+
+  /* Geben Sie die exakte Höhe Ihres Headers und Footers an. */
+  --header-height: 56px;
+  --footer-height: 93px;
 }
 
 /* Grundfarben für die Seite */
@@ -110,52 +114,51 @@ body {
 
 /* Map */
 /* Container für die Karte, damit sie responsive ist */
+/* Der Container, der die Karte hält.
+   Wir nehmen ihn aus dem normalen Seitenfluss und spannen ihn über den ganzen Viewport. */
 #map-container {
+  position: fixed; /* Bleibt fixiert im Fenster */
+  top: var(--header-height); /* Startet unterhalb des Headers */
+  bottom: var(--footer-height); /* Endet oberhalb des Footers */
+  left: 0;
+  right: 0; /* left: 0 und right: 0 spannen es über die volle Breite */
+  width: 100%; /* Breite bleibt 100% */
+  z-index: 1; /* Liegt auf der untersten Ebene */
+}
+
+/* Die Leaflet-Karte selbst muss den Container nun vollständig ausfüllen. */
+#map {
   width: 100%;
-  max-width: 800px; /* Oder eine andere Breite, die auf dem Desktop gut aussieht */
-  margin: auto;
-  margin-bottom: 56px;
-  position: relative;
-  border: 1px solid #ccc; /* Ein Rahmen hilft, den Viewport zu sehen */
-  overflow: hidden; /* SEHR WICHTIG: Verhindert, dass die SVG beim Panning über den Rand hinausragt */
+  height: 100%;
 }
 
-/* Die SVG selbst an den Container anpassen */
-#deutschland-karte {
-  width: 100%;
-  height: auto;
-  touch-action: none;
-}
+/* ------------------------------------------------------------- */
+/* Overlay-Elemente (Überschrift, Tooltip)                       */
+/* ------------------------------------------------------------- */
 
-/* Standard-Stil für alle Bundesländer */
-.land {
-  fill: #f0f0f0;
-  stroke: #333;
-  stroke-width: 2px;
-  transition: fill 0.2s ease-in-out;
-}
-
-/* Hover-Effekt: Hintergrundfarbe ändern, wenn die Maus darüber ist */
-.land:hover {
-  fill: #aadaff; /* Helle Blaufärbung beim Hover */
-  cursor: pointer;
-}
-
-/* Tooltip für den Bundeslandnamen */
-#tooltip {
+/* Wir stylen die h1-Überschrift als schwebendes Overlay-Element. */
+.content h1 {
   position: absolute;
-  background-color: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-family: sans-serif;
-  pointer-events: none; /* Sorgt dafür, dass die Maus "durch" den Tooltip klickt */
-  display: none; /* Standardmäßig unsichtbar */
-  z-index: 10;
+  top: 20px;
+  left: 20px;
+  z-index: 1001; /* Liegt über der Karte und den Leaflet-Controls */
+
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 1.5rem;
 }
 
-#map-group {
-  transform-origin: 50% 50%;
+/* Der Tooltip muss ebenfalls über der Karte schweben. */
+#tooltip {
+  z-index: 1002; /* Höchster z-index, damit er immer sichtbar ist */
+}
+
+/* WICHTIG: Stellt sicher, dass die Leaflet-Controls (Zoom, Copyright)
+   über der Karte, aber unter unseren eigenen Overlays liegen. */
+.leaflet-control-container {
+  z-index: 1000;
 }
 
 /* Stellt sicher, dass ein Element aus dem sichtbaren Bereich verschwindet,
@@ -170,4 +173,47 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.fab {
+  /* Positionierung */
+  position: fixed; /* Fixiert den Button am Browserfenster */
+  left: 50%; /* Zentriert den linken Rand des Buttons horizontal */
+  transform: translateX(
+    -50%
+  ); /* Zieht den Button um seine halbe Breite zurück, um ihn perfekt zu zentrieren */
+  bottom: calc(
+    var(--footer-height) + 20px
+  ); /* Positioniert ihn 20px über Ihrem Sticky Footer */
+  z-index: 1001; /* Stellt sicher, dass er über der Karte, aber unter dem Tooltip liegt */
+
+  /* Aussehen */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* Macht den Button perfekt rund */
+  background-color: var(
+    --bs-primary
+  ); /* Verwendet Ihre primäre Theme-Farbe (Senf-Gelb) */
+  color: var(--bs-dark); /* Verwendet Ihre dunkle Theme-Farbe für das Icon */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Schöner Schatten für den "schwebenden" Effekt */
+
+  /* Inhalt zentrieren (das Plus-Icon) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Übergang für sanfte Hover-Effekte */
+  transition: all 0.2s ease-in-out;
+}
+
+.fab:hover {
+  color: var(--bs-dark);
+  transform: translateX(-50%) scale(1.1); /* Vergrößert den Button leicht beim Darüberfahren */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* Anpassung der Größe des SVG-Icons im Button */
+.fab svg {
+  width: 32px;
+  height: 32px;
 }
