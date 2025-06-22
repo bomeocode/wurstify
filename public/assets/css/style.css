@@ -157,3 +157,17 @@ body {
 #map-group {
   transform-origin: 50% 50%;
 }
+
+/* Stellt sicher, dass ein Element aus dem sichtbaren Bereich verschwindet,
+   aber für Screenreader und den Browser-Fokus erreichbar bleibt. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

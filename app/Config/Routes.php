@@ -7,7 +7,8 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Dashboard::index');
 $routes->get('/dashboard', 'Dashboard::index');
-$routes->get('/ratings', 'Ratings::index');
+$routes->get('/ratings', 'Ratings::new');
+$routes->post('ratings/create', 'Ratings::create');
 $routes->get('/feed', 'Feed::index');
 $routes->get('/merch', 'Merch::index');
 $routes->get('/settings', 'Settings::index');
