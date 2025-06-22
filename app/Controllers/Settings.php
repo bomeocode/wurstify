@@ -12,4 +12,10 @@ class Settings extends BaseController
         $data = [];
         return view('settings/index', $data);
     }
+
+    public function profile()
+    {
+        $data = [];
+        return view('settings/profile', $data);
+    }
 }
