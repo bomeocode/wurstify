@@ -114,6 +114,7 @@ body {
   width: 100%;
   max-width: 800px; /* Oder eine andere Breite, die auf dem Desktop gut aussieht */
   margin: auto;
+  margin-bottom: 56px;
   position: relative;
   border: 1px solid #ccc; /* Ein Rahmen hilft, den Viewport zu sehen */
   overflow: hidden; /* SEHR WICHTIG: Verhindert, dass die SVG beim Panning über den Rand hinausragt */
