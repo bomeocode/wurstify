@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 3. Benutzerdefiniertes Icon (unverändert)
   const bratwurstIcon = L.icon({
-    iconUrl: "assets//img/bratwurst-icon.svg",
+    iconUrl: "assets/img/bratwurst-icon.svg",
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -16],
