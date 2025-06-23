@@ -35,6 +35,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'session'  => \CodeIgniter\Shield\Filters\SessionAuth::class,
+        'admin' => \App\Filters\AdminAuthFilter::class,
     ];
 
     /**

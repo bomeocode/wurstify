@@ -3,15 +3,9 @@
       <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm" style="background-color: #3a2e28;">
         <div class="container-fluid">
 
-          <a class="navbar-brand" href="#">
+          <a class="navbar-brand" href="<?= site_url() ?>">
             Wurstify
           </a>
-
-          <?php if ($currentController == 'Screens'): ?>
-            <a class="navbar-brand" href="<?= base_url('/') ?>">
-              <i class="bi bi-chevron-left"></i> Bildschirme
-            </a>
-          <?php endif; ?>
 
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarWurst" aria-controls="navbarWurst" aria-expanded="false" aria-label="Navigation umschalten">
             <span class="navbar-toggler-icon"></span>
@@ -19,6 +13,13 @@
 
           <div class="collapse navbar-collapse" id="navbarWurst">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+              <?php if (auth()->loggedIn() && user_is_in_group('admin')) : ?>
+                <li class="nav-item">
+                  <a class="nav-link fw-bold text-danger" href="<?= route_to('admin_dashboard') ?>">
+                    Admin-Bereich
+                  </a>
+                </li>
+              <?php endif; ?>
               <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('me') ?>">Profil</a>
               </li>

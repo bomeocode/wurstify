@@ -25,4 +25,34 @@ class UserModel extends ShieldUserModel
             // z.B. 'first_name', 'last_name'
         ];
     }
+
+    // In app/Models/UserModel.php
+
+    // In app/Models/UserModel.php
+
+    public function getUsersWithGroups(?string $searchTerm = null)
+    {
+        $builder = $this->select('
+            users.id, 
+            users.username, 
+            auth_identities.secret as email, 
+            users.created_at,
+            GROUP_CONCAT(auth_groups_users.group SEPARATOR ", ") as groups 
+        ')
+            ->join('auth_identities', 'auth_identities.user_id = users.id AND auth_identities.type = "email_password"', 'left')
+            ->join('auth_groups_users', 'auth_groups_users.user_id = users.id', 'left')
+            ->groupBy('users.id');
+
+        // NEU: Wenn ein Suchbegriff übergeben wird, fügen wir eine WHERE-Klausel hinzu
+        if ($searchTerm) {
+            $builder->groupStart() // Klammer auf: (
+                ->like('users.username', $searchTerm)
+                ->orLike('auth_identities.secret', $searchTerm) // Suche nach Username ODER E-Mail
+                ->groupEnd(); // Klammer zu: )
+        }
+
+        // Wir ersetzen findAll() durch paginate(). Der Pager kümmert sich um den Rest.
+        // Der erste Parameter ist die Anzahl der Einträge pro Seite.
+        return $builder->orderBy('users.id', 'ASC')->paginate(15);
+    }
 }
