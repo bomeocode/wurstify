@@ -54,6 +54,20 @@ class VendorModel extends Model
         return $query->getRowArray();
     }
 
+    public function findAllNearby(float $lat, float $lon, float $radiusInKm = 25): array
+    {
+        $builder = $this->db->table($this->table);
+
+        // Haversine-Formel in SQL, um die Distanz zu berechnen
+        $builder->select("*, ( 6371 * acos( cos( radians({$lat}) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians({$lon}) ) + sin( radians({$lat}) ) * sin( radians( latitude ) ) ) ) AS distance");
+        $builder->having('distance <', $radiusInKm);
+        $builder->orderBy('distance', 'ASC');
+
+        $query = $builder->get();
+
+        return $query->getResultArray(); // WICHTIG: Gibt alle Ergebnisse als Array zurück
+    }
+
     /**
      * Holt alle Anbieter mit deren Durchschnittsbewertungen für die Kartenanzeige.
      */

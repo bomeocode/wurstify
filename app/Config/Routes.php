@@ -15,6 +15,7 @@ $routes->get('/settings', 'Settings::index');
 $routes->get('/me', 'Settings::profile');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
 $routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
+$routes->get('api/vendor-search', 'Api\VendorSearch::index');
 
 service('auth')->routes($routes);
 

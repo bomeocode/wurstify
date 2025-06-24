@@ -38,6 +38,8 @@
     </button>
   </div>
   <div class="form-text" id="location-status"></div>
+  <div id="vendor-suggestions" class="list-group mt-2">
+  </div>
 </div>
 
 <div class="mb-3">
