@@ -25,7 +25,7 @@
 <h2>Neue Bratwurst-Bewertung</h2>
 
 <?= form_open('ratings/create') ?>
-
+<input type="hidden" class="csrf-token" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>" />
 <div id="manual-address-section" class="mb-3">
   <label for="address_manual" class="form-label">Adresse des Anbieters</label>
   <div class="input-group">
@@ -80,6 +80,70 @@ $categories = [
 <div class="mb-3">
   <label for="comment" class="form-label">Optionaler Kommentar</label>
   <textarea class="form-control" name="comment" id="comment" rows="3"><?= old('comment', '') ?></textarea>
+</div>
+
+<div class="mb-3">
+  <label class="form-label">Bilder hinzufügen (bis zu 3)</label>
+  <div class="row g-3">
+
+    <div class="col-4">
+      <div class="image-upload-wrap">
+        <input class="file-upload-input" type='file' accept="image/*" data-slot="1" />
+        <input type="hidden" name="image1" id="image1_filename">
+        <div class="drag-text">
+          <div class="upload-icon">+</div>
+        </div>
+        <div class="file-upload-content">
+          <img class="file-upload-image" src="#" alt="your image" />
+          <div class="progress-bar-wrap">
+            <div class="progress-bar"></div>
+          </div>
+          <div class="image-title-wrap">
+            <button type="button" class="remove-image" data-slot="1">Entfernen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-4">
+      <div class="image-upload-wrap">
+        <input class="file-upload-input" type='file' accept="image/*" data-slot="2" />
+        <input type="hidden" name="image2" id="image2_filename">
+        <div class="drag-text">
+          <div class="upload-icon">+</div>
+        </div>
+        <div class="file-upload-content">
+          <img class="file-upload-image" src="#" alt="your image" />
+          <div class="progress-bar-wrap">
+            <div class="progress-bar"></div>
+          </div>
+          <div class="image-title-wrap">
+            <button type="button" class="remove-image" data-slot="2">Entfernen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-4">
+      <div class="image-upload-wrap">
+        <input class="file-upload-input" type='file' accept="image/*" data-slot="3" />
+        <input type="hidden" name="image3" id="image3_filename">
+        <div class="drag-text">
+          <div class="upload-icon">+</div>
+        </div>
+        <div class="file-upload-content">
+          <img class="file-upload-image" src="#" alt="your image" />
+          <div class="progress-bar-wrap">
+            <div class="progress-bar"></div>
+          </div>
+          <div class="image-title-wrap">
+            <button type="button" class="remove-image" data-slot="3">Entfernen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <button type="submit" class="btn btn-primary">Bewertung absenden</button>

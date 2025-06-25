@@ -119,6 +119,9 @@ class Ratings extends BaseController
             'rating_price' => $this->request->getPost('rating_price'),
             'rating_service' => $this->request->getPost('rating_service'),
             'comment' => $this->request->getPost('comment'),
+            'image1'    => $this->request->getPost('image1'),
+            'image2'    => $this->request->getPost('image2'),
+            'image3'    => $this->request->getPost('image3'),
         ];
 
         if ($ratingModel->insert($ratingData)) {

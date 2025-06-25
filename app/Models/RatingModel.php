@@ -20,13 +20,16 @@ class RatingModel extends Model
      */
     protected $allowedFields    = [
         'user_id',
-        'vendor_id', // NEU
+        'vendor_id',
         'rating_appearance',
         'rating_taste',
         'rating_presentation',
         'rating_price',
         'rating_service',
-        'comment'
+        'comment',
+        'image1',
+        'image2',
+        'image3',
     ];
 
     /**

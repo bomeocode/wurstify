@@ -16,6 +16,8 @@ $routes->get('/me', 'Settings::profile');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
 $routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
 $routes->get('api/vendor-search', 'Api\VendorSearch::index');
+$routes->post('api/rating-image-upload', 'Api\RatingImageUpload::upload');
+$routes->post('api/rating-image-delete', 'Api\RatingImageUpload::delete');
 
 service('auth')->routes($routes);
 
