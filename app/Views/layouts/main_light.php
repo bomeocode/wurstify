@@ -8,7 +8,7 @@
 
   <meta name="X-CSRF-TOKEN-NAME" content="<?= csrf_header() ?>">
   <meta name="X-CSRF-TOKEN-VALUE" content="<?= csrf_hash() ?>">
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
   <link rel="stylesheet" href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>">
   <link rel="stylesheet" href="<?= base_url('assets/bootstrap-icons/bootstrap-icons.css') ?>">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
@@ -105,6 +105,7 @@
     }
   </script>
 
+  <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
   <?= $this->renderSection('scripts') ?>
 </body>
 

@@ -339,3 +339,10 @@ body {
 .image-upload-wrap.image-shown .file-upload-input {
   pointer-events: none;
 }
+
+.rating-images img {
+  aspect-ratio: 1 / 1; /* Sorgt für ein quadratisches Format */
+  object-fit: cover; /* Schneidet das Bild passend zu, anstatt es zu verzerren */
+  width: 100%;
+  background-color: #f0f0f0; /* Hintergrundfarbe, falls ein Bild nicht lädt */
+}
