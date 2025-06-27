@@ -12,12 +12,16 @@ $routes->post('ratings/create', 'Ratings::create');
 $routes->get('/feed', 'Feed::index');
 $routes->get('/merch', 'Merch::index');
 $routes->get('/settings', 'Settings::index');
-$routes->get('/me', 'Settings::profile');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
 $routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
 $routes->get('api/vendor-search', 'Api\VendorSearch::index');
 $routes->post('api/rating-image-upload', 'Api\RatingImageUpload::upload');
 $routes->post('api/rating-image-delete', 'Api\RatingImageUpload::delete');
+
+// Profil bearbeiten
+$routes->get('profile', 'Profile::show', ['filter' => 'session']);
+$routes->post('profile/update', 'Profile::update', ['filter' => 'session']);
+$routes->post('api/avatar-upload', 'Api\AvatarUpload::upload', ['filter' => 'session']);
 
 service('auth')->routes($routes);
 

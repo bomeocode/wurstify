@@ -20,15 +20,12 @@ class UserModel extends ShieldUserModel
         // da diese Spalten in der `users`-Tabelle nicht existieren.
         $this->allowedFields = [
             ...$this->allowedFields,
+            'avatar',
             // Hier könnten Sie EIGENE, ZUSÄTZLICHE Spalten eintragen,
             // falls Sie die `users`-Tabelle später einmal erweitern.
             // z.B. 'first_name', 'last_name'
         ];
     }
-
-    // In app/Models/UserModel.php
-
-    // In app/Models/UserModel.php
 
     public function getUsersWithGroups(?string $searchTerm = null)
     {
