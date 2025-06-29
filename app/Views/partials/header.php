@@ -23,9 +23,9 @@
               <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('profile') ?>">Profil</a>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('settings') ?>">Einstellungen</a>
-              </li>
+              </li> -->
               <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('logout') ?>">Logout</a>
               </li>

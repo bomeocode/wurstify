@@ -1,33 +1,114 @@
+import { showToast } from "./main.js"; // Annahme: Ihre Toast-Funktion wird von hier importiert
+
 document.addEventListener("DOMContentLoaded", function () {
+  console.log("Spezialist: feed.js geladen.");
+
+  // === SETUP für diese Seite ===
   const feedList = document.getElementById("feed-list");
   const loadingIndicator = document.getElementById("loading-indicator");
   const trigger = document.getElementById("load-more-trigger");
 
-  // Wir holen uns die Modal-Elemente aus dem Haupt-DOM
+  // SETUP für das Modal
   const modalElement = document.getElementById("ajax-modal");
+  if (!modalElement) return;
   const modalTitle = modalElement.querySelector(".modal-title");
   const modalBody = modalElement.querySelector(".modal-body");
   const bsModal = new bootstrap.Modal(modalElement);
 
+  // HIER IST DIE KORREKTUR: Fehlende Variablen-Deklarationen
   let nextPage = 1;
   let isLoading = false;
   let lightbox;
 
-  function renderStars(score) {
-    // Wenn keine Punktzahl vorhanden oder 0 ist, einen Platzhalter-Text zurückgeben
-    if (!score || score <= 0) {
-      return '<small class="text-muted">Nicht bewertet</small>';
+  // === EVENT LISTENERS ===
+  document.addEventListener("click", async function (e) {
+    if (e.target.classList.contains("open-single-rating-modal")) {
+      e.preventDefault();
+      const url = e.target.dataset.url;
+      modalTitle.textContent = "Lade Bewertung...";
+      modalBody.innerHTML =
+        '<div class="text-center p-5"><div class="spinner-border"></div></div>';
+      bsModal.show();
+      try {
+        const response = await fetch(url, {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        if (!response.ok)
+          throw new Error("Inhalt konnte nicht geladen werden.");
+        const html = await response.text();
+        modalBody.innerHTML = html;
+        modalTitle.textContent =
+          modalBody.querySelector("h1")?.textContent || "Bewertung";
+        initOrReloadLightbox();
+      } catch (error) {
+        modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+      }
     }
+    // Listener für den globalen Feedback-Button (falls vorhanden)
+    const feedbackTrigger = e.target.closest(
+      '.open-modal-form[data-url*="feedback"]'
+    );
+    if (feedbackTrigger) {
+      e.preventDefault();
+      loadGenericFormtoModal(feedbackTrigger.dataset.url, "Feedback geben");
+    }
+  });
 
-    // Wir runden auf die nächste ganze Zahl, um z.B. aus 4.5 eine 5 zu machen
-    const solidScore = Math.round(score);
+  // 2. Für das Absenden von Formularen im Modal
+  modalElement.addEventListener("submit", async function (e) {
+    if (e.target.tagName === "FORM" && e.target.closest("#ajax-modal")) {
+      e.preventDefault();
+      const form = e.target;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const originalButtonText = submitButton
+        ? submitButton.innerHTML
+        : "Speichern";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML =
+          '<span class="spinner-border spinner-border-sm"></span> Sende...';
+      }
 
-    // Erzeugt die gefüllten und leeren Sterne
-    const solidStars = "★".repeat(solidScore);
-    const emptyStars = "☆".repeat(5 - solidScore);
+      try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: formData,
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        const result = await response.json();
+        if (!response.ok) throw result;
+        showToast(result.message || "Aktion erfolgreich.", "success");
+        bsModal.hide();
+      } catch (error) {
+        const errorMessage = error.messages
+          ? Object.values(error.messages)[0]
+          : "Ein Fehler ist aufgetreten.";
+        showToast(errorMessage, "danger");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButtonText;
+        }
+      }
+    }
+  });
 
-    // Gibt den vollständigen String zurück
-    return solidStars + emptyStars;
+  // === FUNKTIONEN ===
+  function renderStars(score) {
+    if (!score || score <= 0)
+      return '<small class="text-muted">Nicht bewertet</small>';
+    const s = Math.round(score);
+    return "★".repeat(s) + "☆".repeat(5 - s);
+  }
+
+  function initOrReloadLightbox() {
+    if (typeof GLightbox !== "function") return;
+    if (lightbox) {
+      lightbox.reload();
+    } else {
+      lightbox = GLightbox({ selector: ".glightbox" });
+    }
   }
 
   async function loadFeedItems() {
@@ -52,7 +133,6 @@ document.addEventListener("DOMContentLoaded", function () {
             ? comment.substring(0, 150).replace(/\s+\S*$/, "") + "..."
             : comment;
 
-          // NEU: Wir berechnen den Gesamtdurchschnitt direkt hier
           const avg =
             (parseFloat(rating.rating_taste) +
               parseFloat(rating.rating_appearance) +
@@ -61,33 +141,32 @@ document.addEventListener("DOMContentLoaded", function () {
               parseFloat(rating.rating_service)) /
             5;
 
-          // HIER IST DIE ERWEITERTE HTML-STRUKTUR
+          // HIER IST DER VOLLSTÄNDIGE HTML-INHALT FÜR DIE KARTE:
           card.innerHTML = `
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
                         <div>
                            <h5 class="mb-0">${rating.vendor_name}</h5>
                            <small class="text-muted">${
-                             rating.vendor_address
+                             rating.vendor_address || ""
                            }</small>
                         </div>
-                        <div class="text-center">
+                        <div class="text-center ps-3">
                             <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
                               1
                             )}</h2>
-                            <div class="text-warning">${renderStars(avg)}</div>
+                            <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
+                              avg
+                            )}</div>
                         </div>
                     </div>
                     <div class="card-body">
                         ${
                           comment
-                            ? `
-                            <p class="card-text fst-italic">"${shortComment}"</p>
-                            ${
-                              needsReadMore
-                                ? `<button class="btn btn-link p-0 open-single-rating-modal" data-url="/api/ratings/${rating.id}">Weiterlesen</button><hr class="my-3">`
-                                : '<hr class="my-3">'
-                            }
-                        `
+                            ? `<p class="card-text fst-italic">"${shortComment}"</p>${
+                                needsReadMore
+                                  ? `<button class="btn btn-link p-0 mb-3 open-single-rating-modal" data-url="/api/ratings/${rating.id}">Weiterlesen</button>`
+                                  : ""
+                              }`
                             : ""
                         }
                         
@@ -135,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             : ""
                         }
                     </div>
-                    <div class="card-footer text-muted text-end">
+                    <div class="card-footer text-muted text-end small py-1">
                        Bewertet von <strong>${
                          rating.username || "Anonym"
                        }</strong> am ${new Date(
@@ -146,10 +225,10 @@ document.addEventListener("DOMContentLoaded", function () {
           feedList.appendChild(card);
         });
 
-        // GLightbox neu initialisieren, falls es schon existiert
         if (typeof GLightbox === "function") {
-          if (lightbox) lightbox.reload();
-          else {
+          if (lightbox) {
+            lightbox.reload();
+          } else {
             lightbox = GLightbox({ selector: ".glightbox" });
           }
         }
@@ -163,72 +242,51 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch (error) {
       console.error("Fehler beim Laden des Feeds:", error);
+      loadingIndicator.innerHTML =
+        '<p class="text-danger">Laden des Feeds fehlgeschlagen.</p>';
     } finally {
       isLoading = false;
       if (!nextPage) {
-        // Wir ersetzen den Spinner komplett durch eine Textnachricht
-        loadingIndicator.innerHTML =
-          '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
-        // Und stellen sicher, dass der Container sichtbar ist
-        loadingIndicator.style.display = "block";
+        if (feedList.children.length === 0) {
+          loadingIndicator.innerHTML =
+            '<p class="text-muted text-center my-4">Es gibt noch keine Bewertungen.</p>';
+        } else {
+          loadingIndicator.innerHTML =
+            '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
+        }
       } else {
-        // Wenn es noch Seiten gibt, verstecken wir den Indikator wieder
         loadingIndicator.style.display = "none";
       }
     }
   }
 
-  // Event-Listener für "Weiterlesen"-Buttons
-  document.addEventListener("click", async function (e) {
-    if (e.target.classList.contains("open-single-rating-modal")) {
-      const url = e.target.dataset.url;
-      modalTitle.textContent = "Lade Bewertung...";
-      modalBody.innerHTML =
-        '<div class="text-center p-5"><div class="spinner-border"></div></div>';
-      bsModal.show();
-      try {
-        const response = await fetch(url, {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        });
-        if (!response.ok)
-          throw new Error("Inhalt konnte nicht geladen werden.");
+  async function loadGenericFormtoModal(url, title) {
+    modalTitle.textContent = "Lade...";
+    modalBody.innerHTML =
+      '<div class="text-center p-5"><div class="spinner-border"></div></div>';
+    if (!bsModal._isShown) bsModal.show();
+    try {
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      if (!response.ok)
+        throw new Error("Formular konnte nicht geladen werden.");
+      modalBody.innerHTML = await response.text();
+      modalTitle.textContent = title;
+    } catch (error) {
+      modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+    }
+  }
 
-        const html = await response.text();
-        modalBody.innerHTML = html;
-        modalTitle.textContent =
-          modalBody.querySelector("h1")?.textContent || "Bewertung";
-
-        // +++ HIER IST DIE LÖSUNG +++
-        // Wenn eine Lightbox-Instanz existiert, sage ihr, dass sie
-        // nach neuen Links auf der Seite (also auch im Modal) suchen soll.
-        if (lightbox) {
-          lightbox.reload();
-        }
-      } catch (error) {
-        modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-      }
+  // Intersection Observer und initialer Aufruf
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !isLoading) {
+      loadFeedItems();
     }
   });
 
-  // Intersection Observer für Lazy Loading
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting && !isLoading) {
-        // Diese Zeile nur, wenn der Trigger wirklich sichtbar wird
-
-        loadFeedItems();
-      }
-    },
-    {
-      root: null, // Beobachtet den Haupt-Browser-Viewport
-      threshold: 0.1, // Löst aus, wenn 10% des Elements sichtbar sind
-    }
-  );
-
   if (trigger) {
     observer.observe(trigger);
+    loadFeedItems();
   }
-
-  // Lade die ersten Einträge
-  loadFeedItems();
 });

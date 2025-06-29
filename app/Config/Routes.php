@@ -16,9 +16,8 @@ $routes->get('/settings', 'Settings::index');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
 $routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
 $routes->get('feed', 'Feed::index', ['filter' => 'session']);
-// $routes->get('api/vendor-search', 'Api\VendorSearch::index');
-// $routes->post('api/rating-image-upload', 'Api\RatingImageUpload::upload');
-// $routes->post('api/rating-image-delete', 'Api\RatingImageUpload::delete');
+$routes->get('feedback', 'Feedback::index');
+$routes->post('feedback/create', 'Feedback::create', ['as' => 'feedback_create']);
 
 service('auth')->routes($routes);
 

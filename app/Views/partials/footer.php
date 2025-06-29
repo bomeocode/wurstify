@@ -9,21 +9,16 @@
         <small>Start</small>
       </a>
 
-      <button type="button" class="btn btn-link nav-link text-center text-white open-modal-form" data-url="<?= site_url('ratings/new') ?>">
-        <?php echo $currentController == 'Ratings' ? '<i class="bi bi-star-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-star fs-4 d-block mx-auto mb-1"></i>';  ?>
-        <small>Bewerten</small>
-      </button>
-
       <a class="nav-link text-center text-white" href="<?= site_url('feed') ?>">
         <?php echo $currentController == 'Feed' ? '<i class="bi bi-postcard-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-postcard fs-4 d-block mx-auto mb-1"></i>';
         ?>
         <small>Feed</small>
       </a>
 
-      <a class="nav-link text-center text-white" href="<?= site_url('merch') ?>">
-        <?php echo $currentController == 'Merch' ? '<i class="bi bi-bag-heart-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-bag-heart fs-4 d-block mx-auto mb-1"></i>';
+      <a class="nav-link text-center text-white open-modal-form" href="#" data-url="<?= site_url('feedback') ?>">
+        <?php echo $currentController == 'Merch' ? '<i class="bi bi-chat-quote-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-chat-quote fs-4 d-block mx-auto mb-1"></i>';
         ?>
-        <small>Merch</small>
+        <small>Feedback</small>
       </a>
 
     </div>
