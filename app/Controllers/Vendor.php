@@ -13,17 +13,17 @@ class Vendor extends BaseController
         }
 
         $vendorModel = new VendorModel();
-        // Hier können wir die gleiche Funktion wie für die Karte wiederverwenden!
         $vendor = $vendorModel->where('uuid', $uuid)->getVendorsWithAverageRatings();
 
         if (empty($vendor)) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        $data = [
-            // Wir übergeben das erste (und einzige) Ergebnis an die View
-            'vendor' => $vendor[0]
-        ];
+        $data = ['vendor' => $vendor[0]];
+
+        if ($this->request->isAJAX()) {
+            return view('vendor/show_content_only', $data);
+        }
 
         return view('vendor/show', $data);
     }

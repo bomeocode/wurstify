@@ -1,0 +1,202 @@
+// public/js/rating-form-handler.js
+
+/**
+ * Initialisiert alle interaktiven Skripte für das Bewertungsformular.
+ * @param {HTMLElement} container Das DOM-Element, das das Formular enthält (z.B. der modal-body).
+ * @param {Function} showToast Eine Funktion zum Anzeigen von Toast-Benachrichtigungen.
+ */
+export function initializeRatingFormScripts(container, showToast) {
+  // --- Setup der Elemente innerhalb des Containers ---
+  const useLocationBtn = container.querySelector("#use-current-location");
+  const addressField = container.querySelector("#address_manual");
+  const vendorNameField = container.querySelector("#vendor_name");
+  const suggestionsContainer = container.querySelector("#vendor-suggestions");
+  const statusText = container.querySelector("#location-status");
+  const uploaderWraps = container.querySelectorAll(".image-upload-wrap");
+
+  // --- Logik für Standort-Button ---
+  if (useLocationBtn) {
+    useLocationBtn.addEventListener("click", () => {
+      if (statusText) statusText.textContent = "Standort wird ermittelt...";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          if (statusText)
+            statusText.textContent = "Suche Anbieter und Adresse...";
+          fetchVendors(`lat=${latitude}&lon=${longitude}`);
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          )
+            .then((res) => res.json())
+            .then((data) => {
+              if (data && data.display_name && addressField)
+                addressField.value = data.display_name;
+            });
+        },
+        () => {
+          if (statusText)
+            statusText.textContent = "Standort konnte nicht ermittelt werden.";
+        }
+      );
+    });
+  }
+
+  // --- Logik für Adress-Eingabe ---
+  let debounceTimer;
+  if (addressField) {
+    addressField.addEventListener("keyup", () => {
+      clearTimeout(debounceTimer);
+      if (addressField.value.length < 3) {
+        if (suggestionsContainer) suggestionsContainer.innerHTML = "";
+        return;
+      }
+      debounceTimer = setTimeout(() => {
+        if (statusText)
+          statusText.textContent = "Suche nach passenden Anbietern...";
+        fetchVendors(`q=${encodeURIComponent(addressField.value)}`);
+      }, 500);
+    });
+  }
+
+  async function fetchVendors(params) {
+    try {
+      const response = await fetch(`/api/vendor-search?${params}`);
+      renderSuggestions(await response.json());
+    } catch (e) {
+      console.error("Fehler beim Holen der Anbieter:", e);
+    }
+  }
+
+  function renderSuggestions(vendors) {
+    if (!suggestionsContainer) return;
+    suggestionsContainer.innerHTML = "";
+    if (vendors.length === 0) {
+      if (statusText)
+        statusText.textContent =
+          "Keine bekannten Anbieter für diesen Ort gefunden.";
+      return;
+    }
+    if (statusText)
+      statusText.textContent = `${vendors.length} Anbieter gefunden:`;
+    vendors.forEach((vendor) => {
+      const link = document.createElement("a");
+      link.href = "#";
+      link.className = "list-group-item list-group-item-action";
+      link.textContent = `${vendor.name} (${
+        vendor.address || "Adresse unbekannt"
+      })`;
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (vendorNameField) vendorNameField.value = vendor.name;
+        if (addressField) addressField.value = vendor.address || "";
+        suggestionsContainer.innerHTML = "";
+      });
+      suggestionsContainer.appendChild(link);
+    });
+  }
+
+  // --- Logik für Bilder-Uploader ---
+  uploaderWraps.forEach((wrap) => {
+    const slot = wrap.dataset.slot;
+    const fileInput = wrap.querySelector(".rating-file-upload-input");
+    const removeBtn = wrap.querySelector(".rating-remove-image");
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function () {
+        if (this.files[0]) {
+          handleFileUpload(this.files[0], slot);
+        }
+      });
+    }
+    if (removeBtn) {
+      removeBtn.addEventListener("click", () => removeUpload(slot));
+    }
+  });
+
+  function handleFileUpload(inputElement, container) {
+    const file = inputElement.files[0];
+    const slot = inputElement.closest(".rating-image-upload-wrap").dataset.slot;
+    const wrap = container.querySelector(
+      `.rating-image-upload-wrap[data-slot="${slot}"]`
+    );
+    if (!wrap || !file) return;
+
+    wrap.classList.add("image-shown");
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      wrap.querySelector(".rating-file-upload-image").src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    uploadRatingFile(file, slot, container, showToast);
+  }
+
+  function removeUpload(slot, container) {
+    const wrap = container.querySelector(
+      `.rating-image-upload-wrap[data-slot="${slot}"]`
+    );
+    if (!wrap) return;
+    wrap.classList.remove("image-shown");
+    wrap.querySelector(".rating-file-upload-input").value = "";
+    wrap.querySelector(".rating-file-upload-image").src = "#";
+    const hiddenInput = container.querySelector(`#image${slot}_filename`);
+    if (hiddenInput) hiddenInput.value = "";
+  }
+
+  function uploadRatingFile(file, slot, container, showToast) {
+    const formData = new FormData();
+    formData.append("image", file);
+    // Wir suchen das CSRF-Feld innerhalb des Formulars im Modal
+    const csrfInput = container.querySelector('form input[name^="csrf_"]');
+    if (csrfInput) {
+      formData.append(csrfInput.name, csrfInput.value);
+    } else {
+      console.error("CSRF Token nicht gefunden!");
+      showToast("Sicherheitsfehler, bitte Seite neu laden.", "danger");
+      return;
+    }
+
+    const progressBar = container.querySelector(
+      `.rating-image-upload-wrap[data-slot="${slot}"] .rating-progress-bar`
+    );
+    const progressWrap = container.querySelector(
+      `.rating-image-upload-wrap[data-slot="${slot}"] .rating-progress-bar-wrap`
+    );
+
+    if (progressWrap) progressWrap.style.display = "block";
+    if (progressBar) progressBar.style.width = "0%";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/rating-image-upload", true);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && progressBar) {
+        progressBar.style.width = (e.loaded / e.total) * 100 + "%";
+      }
+    };
+
+    xhr.onload = function () {
+      if (progressWrap) progressWrap.style.display = "none";
+
+      if (xhr.status === 201) {
+        const data = JSON.parse(xhr.responseText);
+        const hiddenInput = container.querySelector(`#image${slot}_filename`);
+        const imagePreview = container.querySelector(
+          `.rating-image-upload-wrap[data-slot="${slot}"] .rating-file-upload-image`
+        );
+        if (hiddenInput) hiddenInput.value = data.filename;
+        if (imagePreview)
+          imagePreview.src = "/uploads/ratings/" + data.filename;
+        showToast("Bild erfolgreich hochgeladen", "success");
+      } else {
+        let errorMessage = "Upload fehlgeschlagen!";
+        try {
+          errorMessage =
+            JSON.parse(xhr.responseText).messages.image || errorMessage;
+        } catch (e) {}
+        showToast(errorMessage, "danger");
+        removeUpload(slot, container);
+      }
+    };
+    xhr.send(formData);
+  }
+}

@@ -9,11 +9,10 @@
         <small>Start</small>
       </a>
 
-      <a class="nav-link text-center text-white" href="<?= site_url('ratings') ?>">
-        <?php echo $currentController == 'Ratings' ? '<i class="bi bi-star-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-star fs-4 d-block mx-auto mb-1"></i>';
-        ?>
+      <button type="button" class="btn btn-link nav-link text-center text-white open-modal-form" data-url="<?= site_url('ratings/new') ?>">
+        <?php echo $currentController == 'Ratings' ? '<i class="bi bi-star-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-star fs-4 d-block mx-auto mb-1"></i>';  ?>
         <small>Bewerten</small>
-      </a>
+      </button>
 
       <a class="nav-link text-center text-white" href="<?= site_url('feed') ?>">
         <?php echo $currentController == 'Feed' ? '<i class="bi bi-postcard-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-postcard fs-4 d-block mx-auto mb-1"></i>';

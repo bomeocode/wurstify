@@ -2,80 +2,76 @@
 <?= $this->section('title') ?>Profil bearbeiten<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container mt-5">
-  <h1>Profil bearbeiten</h1>
-  <p>Hier können Sie Ihre Kontoinformationen anpassen.</p>
+<div class="container my-5">
+  <h1 class="mb-4">Profil bearbeiten</h1>
 
   <?php if (session()->has('message')) : ?>
     <div class="alert alert-success"><?= session('message') ?></div>
   <?php endif ?>
-  <?php if (session()->has('errors')) : ?>
-    <ul class="alert alert-danger">
-      <?php foreach (session('errors') as $error) : ?>
-        <li><?= $error ?></li>
-      <?php endforeach ?>
-    </ul>
-  <?php endif ?>
 
-  <div class="row">
+  <div class="row gx-5">
+
     <div class="col-md-4">
       <h4>Profilbild</h4>
-      <div class="image-upload-wrap">
-        <input class="file-upload-input" type='file' accept="image/*" />
-        <div class="drag-text">
-          <div class="upload-icon">+</div>
-        </div>
-        <div class="file-upload-content">
-          <img class="file-upload-image" src="<?= $user->avatar ? '/uploads/avatars/' . esc($user->avatar, 'attr') : '#' ?>" alt="Profilbild" />
-          <div class="progress-bar-wrap">
-            <div class="progress-bar"></div>
-          </div>
-        </div>
+
+      <img src="<?= $user->avatar ? '/uploads/avatars/' . esc($user->avatar, 'attr') : '/assets/img/avatar-placeholder.png' ?>"
+        id="avatar-preview"
+        class="img-fluid rounded mb-2 shadow-sm"
+        alt="Profilbild"
+        style="width: 100%; aspect-ratio: 1/1; object-fit: cover; background-color: #f8f9fa;">
+
+      <div class="progress mb-2" id="progress-wrap" style="display: none;">
+        <div id="progress-bar" class="progress-bar" role="progressbar"></div>
       </div>
-      <p class="text-center mt-2">
-        <button type="button" class="btn btn-sm btn-outline-danger remove-image">Bild entfernen</button>
-      </p>
+
+      <div class="btn-group w-100 mb-3" role="group">
+        <label for="avatar-input" class="btn btn-outline-secondary">Bild ändern</label>
+        <button type="button" id="remove-avatar-btn" class="btn btn-outline-secondary">Entfernen</button>
+      </div>
+
+      <input type="file" id="avatar-input" accept="image/*" class="d-none">
     </div>
 
     <div class="col-md-8">
+      <?= form_open(route_to('profile_update_details')) ?>
+      <?= csrf_field() ?>
+      <input type="hidden" name="avatar" id="avatar-filename-input" value="<?= esc($user->avatar) ?>">
+
       <h4>Kontodetails</h4>
-      <?= form_open('profile/update') ?>
-      <input type="hidden" class="csrf-token" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>" />
-      <input type="hidden" name="avatar" id="image1_filename" value="<?= esc($user->avatar) ?>">
 
       <div class="mb-3">
         <label for="email" class="form-label">E-Mail-Adresse</label>
-        <input type="email" id="email" class="form-control" value="<?= esc($user->getIdentities()[0]->secret ?? '') ?>" disabled>
-        <div class="form-text">Die E-Mail-Adresse kann nicht geändert werden.</div>
+        <input type="email" class="form-control" value="<?= esc(auth()->user()->getIdentities()[0]->secret ?? '') ?>" disabled>
       </div>
       <div class="mb-3">
         <label for="username" class="form-label">Benutzername</label>
-        <input type="text" id="username" name="username" class="form-control" value="<?= esc($user->username) ?>">
+        <input type="text" name="username" class="form-control" value="<?= old('username', $user->username) ?>">
       </div>
-      <button type="submit" class="btn btn-primary">Details speichern</button>
+      <button type="submit" id="save-details-btn" class="btn btn-primary">Details speichern</button>
       <?= form_close() ?>
 
       <hr class="my-4">
 
       <h4>Passwort ändern</h4>
-      <p>Um Ihr Passwort zu ändern, geben Sie bitte Ihr altes und Ihr neues Passwort ein.</p>
-      <?= form_open(route_to('shield_action_password')) ?>
+      <?= form_open(route_to('profile_update_password')) ?>
       <?= csrf_field() ?>
+
       <div class="mb-3">
-        <label for="old_password" class="form-label">Altes Passwort</label>
-        <input type="password" id="old_password" name="old_password" class="form-control" required>
+        <label class="form-label">Altes Passwort</label>
+        <input type="password" name="old_password" class="form-control" required>
       </div>
       <div class="mb-3">
-        <label for="password" class="form-label">Neues Passwort</label>
-        <input type="password" id="password" name="password" class="form-control" required>
+        <label class="form-label">Neues Passwort</label>
+        <input type="password" name="password" class="form-control" required>
       </div>
       <div class="mb-3">
-        <label for="password_confirm" class="form-label">Neues Passwort bestätigen</label>
-        <input type="password" id="password_confirm" name="password_confirm" class="form-control" required>
+        <label class="form-label">Neues Passwort bestätigen</label>
+        <input type="password" name="password_confirm" class="form-control" required>
       </div>
       <button type="submit" class="btn btn-primary">Passwort ändern</button>
       <?= form_close() ?>
     </div>
+
   </div>
 </div>
 <?= $this->endSection() ?>

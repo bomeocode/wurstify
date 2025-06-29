@@ -244,7 +244,7 @@ body {
   border-color: #e0ac00;
 }
 
-.file-upload-input {
+/* .file-upload-input {
   position: absolute;
   margin: 0;
   padding: 0;
@@ -254,7 +254,7 @@ body {
   opacity: 0;
   cursor: pointer;
   z-index: 10;
-}
+} */
 
 .drag-text {
   position: absolute;
@@ -314,30 +314,28 @@ body {
   background: #b23a2d;
 }
 
-/* Progress Bar Styling */
-.progress-bar-wrap {
-  display: none; /* Wird per JS angezeigt */
-  position: absolute;
-  top: 50%;
-  left: 10%;
-  width: 80%;
-  height: 10px;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 5px;
-  z-index: 15;
+/*
+=====================================================
+  Finaler, hoch-spezifischer Fix für den Fortschrittsbalken
+=====================================================
+*/
+
+/* Wir sprechen den Container über seine ID an */
+#progress-wrap {
+  /* display: flex !important; */
+  height: 8px !important;
+  overflow: hidden;
+  font-size: 0.75rem;
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
 }
 
-.progress-bar {
-  width: 0%;
-  height: 100%;
-  background: #3a2e28; /* Holztisch-Braun */
-  border-radius: 5px;
-  transition: width 0.3s ease;
-}
-
-.image-upload-wrap.image-shown .file-upload-input {
-  pointer-events: none;
+/* Und den inneren Balken ebenfalls über seine ID */
+#progress-bar {
+  display: flex !important;
+  height: 100% !important;
+  background-color: #198754 !important; /* Grüner Erfolgs-Farbton */
+  transition: width 0.2s ease !important; /* Sanfte Animation erzwingen */
 }
 
 .rating-images img {
@@ -345,4 +343,227 @@ body {
   object-fit: cover; /* Schneidet das Bild passend zu, anstatt es zu verzerren */
   width: 100%;
   background-color: #f0f0f0; /* Hintergrundfarbe, falls ein Bild nicht lädt */
+}
+
+.image-upload-wrap.image-shown .file-upload-input {
+  pointer-events: none;
+}
+
+/* ============================================= */
+/* Benutzerdefiniertes Styling für Marker-Cluster */
+/* ============================================= */
+
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-clip: padding-box;
+  border-radius: 50%; /* Macht die Cluster rund */
+}
+
+.marker-cluster div {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff; /* Schriftfarbe für die Zahl */
+}
+
+.marker-cluster span {
+  line-height: 30px; /* Zentriert die Zahl vertikal */
+}
+
+/* Wurstify-Farbschema für die Cluster */
+
+/* Cluster-Farbe für kleine Gruppen (< 10) */
+.marker-cluster-small div {
+  background-color: rgba(58, 46, 40, 0.7); /* Holztisch-Braun */
+}
+
+/* Cluster-Farbe für mittlere Gruppen (< 100) */
+.marker-cluster-medium div {
+  background-color: rgba(255, 193, 7, 0.8); /* Senf-Gelb (aus Ihrem Theme) */
+}
+
+/* Cluster-Farbe für große Gruppen (100+) */
+.marker-cluster-large div {
+  background-color: rgba(220, 53, 69, 0.8); /* Ketchup-Rot */
+}
+
+/* ============================================= */
+/* Spezifisches Styling für den Rating-Uploader  */
+/* ============================================= */
+
+/* .rating-image-upload-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 3px dashed #ffc107;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.rating-image-upload-wrap:hover {
+  background-color: #e9ecef;
+  border-color: #e0ac00;
+}
+
+.rating-file-upload-input {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+} */
+
+/* WICHTIG: Regel, um den Input nach dem Upload unklickbar zu machen */
+/* .rating-image-upload-wrap.image-shown .rating-file-upload-input {
+  pointer-events: none;
+}
+
+.rating-drag-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rating-upload-icon {
+  font-size: 5rem;
+  color: #ffc107;
+  font-weight: 100;
+  line-height: 1;
+}
+
+.rating-file-upload-content {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.rating-file-upload-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rating-image-upload-wrap.image-shown .rating-file-upload-content {
+  display: block !important;
+}
+
+.rating-image-upload-wrap.image-shown .rating-file-upload-image {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+} */
+
+/* ======================================================== */
+/* FINALES STYLING FÜR DEN RATING-UPLOADER IM MODAL         */
+/* ======================================================== */
+
+.rating-image-upload-wrap {
+  position: relative;
+  border: 3px dashed #ddd;
+  border-radius: 8px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.rating-file-upload-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Wenn ein Bild angezeigt wird, machen wir das Input-Feld unklickbar */
+.rating-image-upload-wrap.image-shown .rating-file-upload-input {
+  pointer-events: none;
+}
+
+.rating-drag-text {
+  text-align: center;
+}
+
+.rating-upload-icon {
+  font-size: 4rem;
+  color: #ccc;
+  font-weight: 100;
+}
+
+/* Container für Vorschau & Entfernen-Button (standardmäßig versteckt) */
+.rating-file-upload-content {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.rating-file-upload-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Der Container für den "Entfernen"-Button */
+.rating-image-title-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  text-align: center;
+  opacity: 0; /* Standardmäßig unsichtbar */
+  transition: opacity 0.3s ease;
+}
+
+/* Zeige den Button-Container beim Hovern über das Bild an */
+.rating-file-upload-content:hover .rating-image-title-wrap {
+  opacity: 1;
+}
+
+.rating-remove-image {
+  color: white;
+  background-color: #dc3545;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+/* WICHTIGE REGELN ZUM UMSCHALTEN DER SICHTBARKEIT */
+
+/* Wenn ein Bild da ist: Verstecke den Plus-Text */
+.rating-image-upload-wrap.image-shown .rating-drag-text {
+  display: none;
+}
+
+/* Wenn ein Bild da ist: Zeige den Content-Container an */
+.rating-image-upload-wrap.image-shown .rating-file-upload-content {
+  display: block;
 }

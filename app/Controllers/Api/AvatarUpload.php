@@ -8,13 +8,9 @@ class AvatarUpload extends ResourceController
 {
     public function upload()
     {
-        if (!auth()->loggedIn()) {
-            return $this->failUnauthorized('Bitte zuerst einloggen.');
-        }
-
         $validationRule = [
             'image' => [
-                'label' => 'Image File',
+                'label' => 'Bilddatei',
                 'rules' => 'uploaded[image]|is_image[image]|max_size[image,2048]',
             ],
         ];
@@ -25,9 +21,8 @@ class AvatarUpload extends ResourceController
 
         $img = $this->request->getFile('image');
 
-        if (!$img->hasMoved()) {
+        if ($img !== null && !$img->hasMoved()) {
             $newName = $img->getRandomName();
-            // In einen anderen Ordner speichern!
             $img->move(FCPATH . 'uploads/avatars', $newName);
             return $this->respondCreated(['filename' => $newName]);
         }

@@ -8,6 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Dashboard::index');
 $routes->get('/dashboard', 'Dashboard::index');
 $routes->get('/ratings', 'Ratings::new');
+$routes->get('/ratings/new', 'Ratings::new');
 $routes->post('ratings/create', 'Ratings::create');
 $routes->get('/feed', 'Feed::index');
 $routes->get('/merch', 'Merch::index');
@@ -18,26 +19,20 @@ $routes->get('api/vendor-search', 'Api\VendorSearch::index');
 $routes->post('api/rating-image-upload', 'Api\RatingImageUpload::upload');
 $routes->post('api/rating-image-delete', 'Api\RatingImageUpload::delete');
 
-// Profil bearbeiten
-$routes->get('profile', 'Profile::show', ['filter' => 'session']);
-$routes->post('profile/update', 'Profile::update', ['filter' => 'session']);
-$routes->post('api/avatar-upload', 'Api\AvatarUpload::upload', ['filter' => 'session']);
-
 service('auth')->routes($routes);
 
-// app/Config/Routes.php
+// Profil bearbeiten
+$routes->group('profile', ['filter' => 'session'], static function ($routes) {
+  $routes->get('/', 'Profile::show', ['as' => 'profile_show']);
+  $routes->post('update/details', 'Profile::updateDetails', ['as' => 'profile_update_details']);
+  $routes->post('update/password', 'Profile::updatePassword', ['as' => 'profile_update_password']);
+});
+$routes->post('api/avatar-upload', 'Api\AvatarUpload::upload', ['filter' => 'session']);
+
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('/', 'Admin\DashboardController::index', ['as' => 'admin_dashboard']);
-
-  // Zeigt die Liste aller Benutzer an
   $routes->get('users', 'Admin\UserController::index');
-
-  // Zeigt das Formular zum Bearbeiten eines Benutzers an
   $routes->get('users/edit/(:num)', 'Admin\UserController::edit/$1');
-
-  // Verarbeitet die Formulardaten vom Bearbeiten
   $routes->post('users/update/(:num)', 'Admin\UserController::update/$1');
-
-  // Verarbeitet den Klick auf den "Löschen"-Button
   $routes->get('users/delete/(:num)', 'Admin\UserController::delete/$1');
 });

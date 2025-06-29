@@ -8,6 +8,9 @@
 
   <meta name="X-CSRF-TOKEN-NAME" content="<?= csrf_header() ?>">
   <meta name="X-CSRF-TOKEN-VALUE" content="<?= csrf_hash() ?>">
+
+  <?= csrf_meta() ?>
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
   <link rel="stylesheet" href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>">
   <link rel="stylesheet" href="<?= base_url('assets/bootstrap-icons/bootstrap-icons.css') ?>">
@@ -16,6 +19,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
   <?php endif; ?>
@@ -106,7 +110,28 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+  <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
   <?= $this->renderSection('scripts') ?>
+
+  <div class="modal fade" id="ajax-modal" tabindex="-1" aria-labelledby="ajax-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-fullscreen-md-down modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ajax-modal-label">Lade...</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="ajax-modal-body">
+          <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <?= $this->renderSection('scripts') ?>
+
 </body>
 
 </html>

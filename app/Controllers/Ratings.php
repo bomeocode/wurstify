@@ -2,21 +2,44 @@
 
 namespace App\Controllers;
 
+// ALT: use App\Controllers\BaseController;
+// NEU: Wir erben vom ResourceController für die API-Funktionen
+use CodeIgniter\RESTful\ResourceController;
+
 use App\Models\RatingModel;
 use App\Models\VendorModel;
 use Config\Services;
 
-class Ratings extends BaseController
+// ALT: class Ratings extends BaseController
+// NEU:
+class Ratings extends ResourceController
 {
     // Zeigt das Bewertungsformular an
     public function new()
     {
-        // Stellt sicher, dass der Benutzer eingeloggt ist
         if (!auth()->loggedIn()) {
             return redirect()->to('login');
         }
 
-        return view('ratings/new'); // Wir erstellen diese View-Datei gleich
+        $vendorUuid = $this->request->getGet('vendor_uuid');
+        $vendorData = null;
+
+        if ($vendorUuid) {
+            $vendorModel = new VendorModel();
+            $vendorData = $vendorModel->asArray()->where('uuid', $vendorUuid)->first();
+        }
+
+        $data = ['vendor' => $vendorData];
+
+        if ($this->request->isAJAX()) {
+            if ($vendorData === null && $vendorUuid) {
+                // Diese Funktion ist jetzt verfügbar!
+                return $this->failNotFound('Der angegebene Anbieter konnte nicht gefunden werden.');
+            }
+            return view('ratings/new_content_only', $data);
+        }
+
+        return view('ratings/new', $data);
     }
 
     // Speichert eine neue Bewertung
@@ -40,73 +63,78 @@ class Ratings extends BaseController
             return redirect()->back()->withInput()->with('toast', $toastData);
         }
 
+        $vendorId = $this->request->getPost('vendor_id');
+
         $vendorModel = new VendorModel();
         $ratingModel = new RatingModel();
 
-        $manualAddress = $this->request->getPost('address_manual');
-        $vendorName = $this->request->getPost('vendor_name');
-        $lat = null;
-        $lon = null;
+        if (empty($vendorId)) {
 
-        if (!empty($manualAddress)) {
-            try {
-                $apiKey = getenv('google.apiKey');
-                if (empty($apiKey)) {
-                    throw new \Exception('Google API Key not found in .env file.');
-                }
+            $manualAddress = $this->request->getPost('address_manual');
+            $vendorName = $this->request->getPost('vendor_name');
+            $lat = null;
+            $lon = null;
 
-                $client = Services::curlrequest([
-                    'baseURI' => 'https://maps.googleapis.com/maps/api/',
-                    'timeout' => 5,
-                ]);
+            if (!empty($manualAddress)) {
+                try {
+                    $apiKey = getenv('google.apiKey');
+                    if (empty($apiKey)) {
+                        throw new \Exception('Google API Key not found in .env file.');
+                    }
 
-                $response = $client->get('geocode/json', [
-                    'query' => ['address' => $manualAddress, 'key' => $apiKey, 'region' => 'de'],
-                ]);
+                    $client = Services::curlrequest([
+                        'baseURI' => 'https://maps.googleapis.com/maps/api/',
+                        'timeout' => 5,
+                    ]);
 
-                if ($response->getStatusCode() === 200) {
-                    $result = json_decode($response->getBody(), true);
+                    $response = $client->get('geocode/json', [
+                        'query' => ['address' => $manualAddress, 'key' => $apiKey, 'region' => 'de'],
+                    ]);
 
-                    if ($result['status'] === 'OK' && !empty($result['results'])) {
-                        $firstResult = $result['results'][0];
-                        if (isset($firstResult['geometry']['location_type']) && $firstResult['geometry']['location_type'] === 'APPROXIMATE') {
-                            $toastData = ['message' => 'Die Adresse ist zu ungenau. Bitte geben Sie mehr Details an.', 'type' => 'warning'];
+                    if ($response->getStatusCode() === 200) {
+                        $result = json_decode($response->getBody(), true);
+
+                        if ($result['status'] === 'OK' && !empty($result['results'])) {
+                            $firstResult = $result['results'][0];
+                            if (isset($firstResult['geometry']['location_type']) && $firstResult['geometry']['location_type'] === 'APPROXIMATE') {
+                                $toastData = ['message' => 'Die Adresse ist zu ungenau. Bitte geben Sie mehr Details an.', 'type' => 'warning'];
+                                return redirect()->back()->withInput()->with('toast', $toastData);
+                            }
+                            $location = $firstResult['geometry']['location'];
+                            $lat = $location['lat'];
+                            $lon = $location['lng'];
+                        } else {
+                            $toastData = ['message' => 'Die eingegebene Adresse konnte nicht gefunden werden.', 'type' => 'danger'];
                             return redirect()->back()->withInput()->with('toast', $toastData);
                         }
-                        $location = $firstResult['geometry']['location'];
-                        $lat = $location['lat'];
-                        $lon = $location['lng'];
                     } else {
-                        $toastData = ['message' => 'Die eingegebene Adresse konnte nicht gefunden werden.', 'type' => 'danger'];
+                        $toastData = ['message' => 'Der Adress-Dienst ist zurzeit nicht erreichbar.', 'type' => 'danger'];
                         return redirect()->back()->withInput()->with('toast', $toastData);
                     }
-                } else {
-                    $toastData = ['message' => 'Der Adress-Dienst ist zurzeit nicht erreichbar.', 'type' => 'danger'];
+                } catch (\Exception $e) {
+                    log_message('error', '[Geocoding] ' . $e->getMessage());
+                    $toastData = ['message' => 'Ein technischer Fehler bei der Adressprüfung ist aufgetreten.', 'type' => 'danger'];
                     return redirect()->back()->withInput()->with('toast', $toastData);
                 }
-            } catch (\Exception $e) {
-                log_message('error', '[Geocoding] ' . $e->getMessage());
-                $toastData = ['message' => 'Ein technischer Fehler bei der Adressprüfung ist aufgetreten.', 'type' => 'danger'];
+            }
+
+            if (empty($lat) || empty($lon)) {
+                $toastData = ['message' => 'Bitte geben Sie eine gültige Adresse für den Anbieter an.', 'type' => 'danger'];
                 return redirect()->back()->withInput()->with('toast', $toastData);
             }
-        }
 
-        if (empty($lat) || empty($lon)) {
-            $toastData = ['message' => 'Bitte geben Sie eine gültige Adresse für den Anbieter an.', 'type' => 'danger'];
-            return redirect()->back()->withInput()->with('toast', $toastData);
-        }
+            $existingVendor = $vendorModel->findNearby($lat, $lon);
+            $vendorId = null;
 
-        $existingVendor = $vendorModel->findNearby($lat, $lon);
-        $vendorId = null;
-
-        if ($existingVendor) {
-            $vendorId = $existingVendor['id'];
-        } else {
-            $newVendorData = ['name' => $vendorName, 'address' => $manualAddress, 'latitude' => $lat, 'longitude' => $lon];
-            $vendorId = $vendorModel->insert($newVendorData);
-            if (!$vendorId) {
-                $toastData = ['message' => 'Der neue Anbieter konnte nicht in der Datenbank gespeichert werden.', 'type' => 'danger'];
-                return redirect()->back()->withInput()->with('toast', $toastData);
+            if ($existingVendor) {
+                $vendorId = $existingVendor['id'];
+            } else {
+                $newVendorData = ['name' => $vendorName, 'address' => $manualAddress, 'latitude' => $lat, 'longitude' => $lon];
+                $vendorId = $vendorModel->insert($newVendorData);
+                if (!$vendorId) {
+                    $toastData = ['message' => 'Der neue Anbieter konnte nicht in der Datenbank gespeichert werden.', 'type' => 'danger'];
+                    return redirect()->back()->withInput()->with('toast', $toastData);
+                }
             }
         }
 
@@ -126,10 +154,10 @@ class Ratings extends BaseController
 
         if ($ratingModel->insert($ratingData)) {
             $toastData = ['message' => 'Vielen Dank! Deine Bewertung wurde gespeichert.', 'type' => 'success'];
-            return redirect()->to('/dashboard')->with('toast', $toastData);
+            return $this->respondCreated(['message' => 'Bewertung erfolgreich gespeichert.']);
         }
 
         $toastData = ['message' => 'Beim Speichern der finalen Bewertung ist ein Fehler aufgetreten.', 'type' => 'danger'];
-        return redirect()->back()->withInput()->with('toast', $toastData);
+        return $this->failServerError('Bewertung konnte nicht gespeichert werden.');
     }
 }
