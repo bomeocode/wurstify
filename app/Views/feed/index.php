@@ -1,14 +1,15 @@
 <?= $this->extend('layouts/main_light') ?>
-
-<?= $this->section('title') ?>Wurstify - Feed<?= $this->endSection() ?>
+<?= $this->section('title') ?>Wurst-Feed<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<div class="container my-5">
+  <h1 class="mb-4">Der Wurst-Feed</h1>
+  <p class="text-muted">Die neuesten Bewertungen aus der ganzen Republik.</p>
 
-<h1>Feed</h1>
-<a href="/logout">Abmelden</a>
-<hr>
-
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Impedit pariatur voluptas consequatur quasi id ipsa at est iste tempora consequuntur necessitatibus cumque doloremque perferendis, facilis quo vero in voluptatum. Nesciunt?
-</p>
-
+  <div id="feed-list"></div>
+  <div id="loading-indicator" class="text-center my-4" style="display: none;">
+    <div class="spinner-border" role="status"></div>
+  </div>
+  <div id="load-more-trigger"></div>
+</div>
 <?= $this->endSection() ?>

@@ -9,7 +9,7 @@ class RatingModel extends Model
     protected $table            = 'ratings';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
+    // protected $returnType       = 'object';
     protected $useTimestamps    = true;
     protected $createdField     = 'created_at';
     protected $updatedField     = 'updated_at';
@@ -54,4 +54,23 @@ class RatingModel extends Model
             'is_not_unique' => 'Der zugeordnete Anbieter existiert nicht in der Datenbank.'
         ]
     ];
+
+    public function getFeedPage(int $limit = 10, int $offset = 0)
+    {
+        return $this->select('ratings.*, vendors.name as vendor_name, vendors.address as vendor_address, users.username')
+            ->join('vendors', 'vendors.id = ratings.vendor_id', 'left')
+            ->join('users', 'users.id = ratings.user_id', 'left')
+            ->orderBy('ratings.created_at', 'DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResult(); // Gibt ein Array von Objekten zurück
+    }
+
+    /**
+     * Zählt alle Einträge für die Paginierung.
+     */
+    public function countFeedItems(): int
+    {
+        return $this->countAllResults();
+    }
 }

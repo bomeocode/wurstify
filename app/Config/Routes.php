@@ -15,9 +15,10 @@ $routes->get('/merch', 'Merch::index');
 $routes->get('/settings', 'Settings::index');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
 $routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
-$routes->get('api/vendor-search', 'Api\VendorSearch::index');
-$routes->post('api/rating-image-upload', 'Api\RatingImageUpload::upload');
-$routes->post('api/rating-image-delete', 'Api\RatingImageUpload::delete');
+$routes->get('feed', 'Feed::index', ['filter' => 'session']);
+// $routes->get('api/vendor-search', 'Api\VendorSearch::index');
+// $routes->post('api/rating-image-upload', 'Api\RatingImageUpload::upload');
+// $routes->post('api/rating-image-delete', 'Api\RatingImageUpload::delete');
 
 service('auth')->routes($routes);
 
@@ -27,7 +28,17 @@ $routes->group('profile', ['filter' => 'session'], static function ($routes) {
   $routes->post('update/details', 'Profile::updateDetails', ['as' => 'profile_update_details']);
   $routes->post('update/password', 'Profile::updatePassword', ['as' => 'profile_update_password']);
 });
-$routes->post('api/avatar-upload', 'Api\AvatarUpload::upload', ['filter' => 'session']);
+
+$routes->group('api', ['filter' => 'session'], static function ($routes) {
+  // Bestehende Routen...
+  $routes->post('avatar-upload', 'Api\AvatarUpload::upload');
+  $routes->post('rating-image-upload', 'Api\RatingImageUpload::upload');
+  $routes->post('rating-image-delete', 'Api\RatingImageUpload::delete');
+  $routes->get('vendor-search', 'Api\VendorSearch::index');
+  // NEUE ROUTEN:
+  $routes->get('feed/ratings', 'Api\FeedController::index');
+  $routes->get('ratings/(:num)', 'Api\RatingController::show/$1');
+});
 
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('/', 'Admin\DashboardController::index', ['as' => 'admin_dashboard']);
