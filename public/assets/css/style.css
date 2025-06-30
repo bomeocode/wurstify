@@ -567,3 +567,23 @@ body {
 .rating-image-upload-wrap.image-shown .rating-file-upload-content {
   display: block;
 }
+
+/* ======================================= */
+/* Styling für Avatar-Bilder bei Bewertungen */
+/* ======================================= */
+
+/* Kleines Avatar-Bild für die Feed-Übersicht */
+.avatar-image-sm {
+  width: 40px;
+  height: 40px;
+  object-fit: cover; /* Verhindert, dass das Bild verzerrt wird */
+  border: 1px solid #eee;
+}
+
+/* Mittleres Avatar-Bild für die Modal-Detailansicht */
+.avatar-image-md {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border: 2px solid #eee;
+}

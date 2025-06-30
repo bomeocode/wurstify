@@ -214,12 +214,22 @@ document.addEventListener("DOMContentLoaded", function () {
                             : ""
                         }
                     </div>
-                    <div class="card-footer text-muted text-end small py-1">
-                       Bewertet von <strong>${
-                         rating.username || "Anonym"
-                       }</strong> am ${new Date(
-            rating.created_at
-          ).toLocaleDateString("de-DE")}
+                    <div class="card-footer text-muted d-flex justify-content-end align-items-center small py-2">
+                       <div class="me-2 text-end">
+                          Bewertet von <strong>${
+                            rating.username || "Anonym"
+                          }</strong><br>
+                          <span style="font-size: 0.8em;">am ${new Date(
+                            rating.created_at
+                          ).toLocaleDateString("de-DE")}</span>
+                       </div>
+                       <img src="${
+                         rating.avatar
+                           ? "/uploads/avatars/" + rating.avatar
+                           : "/assets/img/avatar-placeholder.png"
+                       }" 
+                            alt="Avatar von ${rating.username || "Anonym"}" 
+                            class="avatar-image-sm rounded-circle">
                     </div>
                 `;
           feedList.appendChild(card);

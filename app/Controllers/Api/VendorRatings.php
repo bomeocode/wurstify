@@ -13,7 +13,7 @@ class VendorRatings extends ResourceController
 
         // Bewertungen mit Benutzerinfos holen, paginiert
         $ratings = $ratingModel
-            ->select('ratings.*, users.username')
+            ->select('ratings.*, users.username, users.avatar')
             ->join('users', 'users.id = ratings.user_id')
             ->join('vendors', 'vendors.id = ratings.vendor_id')
             ->where('vendors.uuid', $vendor_uuid)

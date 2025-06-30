@@ -95,12 +95,49 @@
   }
   ?>
 
+  <div id="update-prompt" style="display:none; position: fixed; bottom: 20px; left: 20px; background-color: #333; color: white; padding: 15px; border-radius: 5px; z-index: 1000;">
+    <span>Eine neue Version ist verfügbar!</span>
+    <button id="reload-button" style="margin-left: 15px; background-color: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Neu laden</button>
+  </div>
+
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('<?= base_url('sw.js') ?>')
+        navigator.serviceWorker.register('https://app.wurstify.com/sw.js')
           .then(registration => {
-            console.log('Service Worker registriert:', registration);
+            console.log('Service Worker registriert.');
+
+            const showUpdatePrompt = (worker) => {
+              const updatePrompt = document.getElementById('update-prompt');
+              const reloadButton = document.getElementById('reload-button');
+              reloadButton.onclick = () => {
+                worker.postMessage({
+                  type: 'SKIP_WAITING'
+                });
+
+                window.location.reload();
+              };
+
+              updatePrompt.style.display = 'block';
+              console.log('Neuer Service Worker wartet. Update-Benachrichtigung wird angezeigt.');
+            };
+
+            if (registration.waiting) {
+              showUpdatePrompt(registration.waiting);
+            }
+
+            registration.onupdatefound = () => {
+              const installingWorker = registration.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    if (registration.waiting) {
+                      showUpdatePrompt(registration.waiting);
+                    }
+                  }
+                };
+              }
+            };
           })
           .catch(error => {
             console.log('Service Worker Registrierung fehlgeschlagen:', error);

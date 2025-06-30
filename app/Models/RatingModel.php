@@ -57,13 +57,57 @@ class RatingModel extends Model
 
     public function getFeedPage(int $limit = 10, int $offset = 0)
     {
-        return $this->select('ratings.*, vendors.name as vendor_name, vendors.address as vendor_address, users.username')
+        return $this->select([
+            'ratings.id',
+            'ratings.comment',
+            'ratings.created_at',
+            'ratings.rating_appearance',
+            'ratings.rating_taste',
+            'ratings.rating_presentation',
+            'ratings.rating_price',
+            'ratings.rating_service',
+            'ratings.image1',
+            'ratings.image2',
+            'ratings.image3',
+            'vendors.name as vendor_name',
+            'vendors.address as vendor_address',
+            'users.username',
+            'users.avatar'
+        ])
             ->join('vendors', 'vendors.id = ratings.vendor_id', 'left')
             ->join('users', 'users.id = ratings.user_id', 'left')
             ->orderBy('ratings.created_at', 'DESC')
             ->limit($limit, $offset)
             ->get()
-            ->getResult(); // Gibt ein Array von Objekten zurück
+            ->getResult();
+    }
+
+    /**
+     * Holt paginierte Feed-Einträge mit expliziten Spalten.
+     */
+    public function getPaginatedFeed()
+    {
+        return $this->select([
+            'ratings.id',
+            'ratings.comment',
+            'ratings.created_at',
+            'ratings.rating_appearance',
+            'ratings.rating_taste',
+            'ratings.rating_presentation',
+            'ratings.rating_price',
+            'ratings.rating_service',
+            'ratings.image1',
+            'ratings.image2',
+            'ratings.image3',
+            'vendors.name as vendor_name',
+            'vendors.address as vendor_address',
+            'users.username',
+            'users.avatar'
+        ])
+            ->join('vendors', 'vendors.id = ratings.vendor_id', 'left')
+            ->join('users', 'users.id = ratings.user_id', 'left')
+            ->orderBy('ratings.created_at', 'DESC')
+            ->paginate(10);
     }
 
     /**

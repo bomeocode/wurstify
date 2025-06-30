@@ -210,35 +210,45 @@ document.addEventListener("DOMContentLoaded", function () {
       initializeRatingFormScripts(container, displayToast);
     });
   }
+  // Ersetzen Sie die bestehende initializeLazyLoading-Funktion in dashboard.js
+
   function initializeLazyLoading(container, vendorUuid) {
     const ratingsList = container.querySelector("#ratings-list");
     const loadingIndicator = container.querySelector("#loading-indicator");
     const trigger = container.querySelector("#load-more-trigger");
     if (!ratingsList || !loadingIndicator || !trigger) return;
+
     let nextPage = 1,
       isLoading = false,
       lightbox;
     if (lazyLoadObserver) lazyLoadObserver.disconnect();
     ratingsList.innerHTML = "";
+
     function renderStars(score) {
       if (!score || score <= 0)
         return '<small class="text-muted">Nicht bewertet</small>';
       const s = Math.round(score);
       return "★".repeat(s) + "☆".repeat(5 - s);
     }
+
     async function loadRatings() {
       if (isLoading || !nextPage) return;
       isLoading = true;
+      loadingIndicator.innerHTML =
+        '<div class="spinner-border" role="status"></div>';
       loadingIndicator.style.display = "block";
+
       try {
+        // Die API-Route für die Bewertungen eines spezifischen Vendors
         const response = await fetch(
           `/api/vendors/${vendorUuid}/ratings?page=${nextPage}`
         );
         const data = await response.json();
+
         if (data.ratings && data.ratings.length > 0) {
           data.ratings.forEach((rating) => {
             const el = document.createElement("div");
-            el.className = "card mb-3";
+            el.className = "card shadow-sm mb-3";
             const avg =
               (parseFloat(rating.rating_taste) +
                 parseFloat(rating.rating_appearance) +
@@ -246,47 +256,86 @@ document.addEventListener("DOMContentLoaded", function () {
                 parseFloat(rating.rating_price) +
                 parseFloat(rating.rating_service)) /
               5;
-            el.innerHTML = `<div class="card-body"><div class="row g-3"><div class="col-md-3 text-center d-flex flex-column justify-content-center align-items-center p-2 bg-light rounded"><h2 class="display-5 fw-bold mb-0">${avg.toFixed(
-              1
-            )}</h2><div class="text-warning">${renderStars(
-              avg
-            )}</div><small class="text-muted">Gesamt</small></div><div class="col-md-9"><h6 class="card-title mb-1"><strong>${
-              rating.username || "Anonym"
-            }</strong><small class="text-muted"> schrieb am ${new Date(
-              rating.created_at
-            ).toLocaleDateString(
-              "de-DE"
-            )}:</small></h6><p class="card-text fst-italic">"${
-              rating.comment || "Kein Kommentar"
-            }"</p><hr class="my-2"><div><div class="d-flex justify-content-between"><small>Aussehen:</small> <span class="text-warning">${renderStars(
-              rating.rating_appearance
-            )}</span></div><div class="d-flex justify-content-between"><small>Geschmack:</small> <span class="text-warning">${renderStars(
-              rating.rating_taste
-            )}</span></div><div class="d-flex justify-content-between"><small>Präsentation:</small> <span class="text-warning">${renderStars(
-              rating.rating_presentation
-            )}</span></div><div class="d-flex justify-content-between"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
-              rating.rating_price
-            )}</span></div><div class="d-flex justify-content-between"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
-              rating.rating_service
-            )}</span></div></div>${
-              rating.image1 || rating.image2 || rating.image3
-                ? `<div class="rating-images mt-3"><div class="row g-2">${
-                    rating.image1
-                      ? `<div class="col-4"><a href="/uploads/ratings/${rating.image1}" class="glightbox" data-gallery="rating-${rating.id}"><img src="/uploads/ratings/${rating.image1}" class="img-fluid rounded" alt="Bild 1"></a></div>`
-                      : ""
-                  }${
-                    rating.image2
-                      ? `<div class="col-4"><a href="/uploads/ratings/${rating.image2}" class="glightbox" data-gallery="rating-${rating.id}"><img src="/uploads/ratings/${rating.image2}" class="img-fluid rounded" alt="Bild 2"></a></div>`
-                      : ""
-                  }${
-                    rating.image3
-                      ? `<div class="col-4"><a href="/uploads/ratings/${rating.image3}" class="glightbox" data-gallery="rating-${rating.id}"><img src="/uploads/ratings/${rating.image3}" class="img-fluid rounded" alt="Bild 3"></a></div>`
-                      : ""
-                  }</div></div>`
-                : ""
-            }</div></div></div>`;
+
+            // Wir verwenden hier das gleiche, "schöne" Layout wie im Haupt-Feed
+            el.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="${
+                                          rating.avatar
+                                            ? "/uploads/avatars/" +
+                                              rating.avatar
+                                            : "/assets/img/avatar-placeholder.png"
+                                        }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
+                                        <div>
+                                            <h6 class="card-title mb-0"><strong>${
+                                              rating.username || "Anonym"
+                                            }</strong></h6>
+                                            <small class="text-muted">schrieb am ${new Date(
+                                              rating.created_at
+                                            ).toLocaleDateString(
+                                              "de-DE"
+                                            )}</small>
+                                        </div>
+                                    </div>
+                                    <p class="card-text fst-italic">"${
+                                      rating.comment || "Kein Kommentar"
+                                    }"</p>
+                                </div>
+                                <div class="text-center ps-3">
+                                    <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
+                                      1
+                                    )}</h2>
+                                    <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
+                                      avg
+                                    )}</div>
+                                </div>
+                            </div>
+                            <hr class="my-2">
+                            <div>
+                                <div class="d-flex justify-content-between"><small>Aussehen:</small> <span class="text-warning">${renderStars(
+                                  rating.rating_appearance
+                                )}</span></div>
+                                <div class="d-flex justify-content-between"><small>Geschmack:</small> <span class="text-warning">${renderStars(
+                                  rating.rating_taste
+                                )}</span></div>
+                                <div class="d-flex justify-content-between"><small>Präsentation:</small> <span class="text-warning">${renderStars(
+                                  rating.rating_presentation
+                                )}</span></div>
+                                <div class="d-flex justify-content-between"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
+                                  rating.rating_price
+                                )}</span></div>
+                                <div class="d-flex justify-content-between"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
+                                  rating.rating_service
+                                )}</span></div>
+                            </div>
+                            ${
+                              rating.image1 || rating.image2 || rating.image3
+                                ? `<div class="rating-images mt-3"><div class="row g-2">
+                                ${
+                                  rating.image1
+                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image1}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image1}" class="img-fluid rounded" alt="Bild 1"></a></div>`
+                                    : ""
+                                }
+                                ${
+                                  rating.image2
+                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image2}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image2}" class="img-fluid rounded" alt="Bild 2"></a></div>`
+                                    : ""
+                                }
+                                ${
+                                  rating.image3
+                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image3}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image3}" class="img-fluid rounded" alt="Bild 3"></a></div>`
+                                    : ""
+                                }
+                            </div></div>`
+                                : ""
+                            }
+                        </div>`;
             ratingsList.appendChild(el);
           });
+
           if (typeof GLightbox === "function") {
             if (lightbox) lightbox.reload();
             else {
@@ -307,20 +356,26 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!nextPage) {
           loadingIndicator.innerHTML =
             ratingsList.children.length === 0
-              ? '<p class="text-muted text-center my-4">Noch keine Bewertungen.</p>'
+              ? '<p class="text-muted text-center my-4">Für diesen Anbieter gibt es noch keine Bewertungen.</p>'
               : '<p class="text-muted text-center my-4">Ende der Bewertungen.</p>';
         } else {
           loadingIndicator.style.display = "none";
         }
       }
     }
+
     lazyLoadObserver = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoading) loadRatings();
+        if (entries[0].isIntersecting && !isLoading) {
+          loadRatings();
+        }
       },
       { root: modalElement, threshold: 0.1 }
     );
-    lazyLoadObserver.observe(trigger);
-    loadRatings();
+
+    if (trigger) {
+      lazyLoadObserver.observe(trigger);
+      loadRatings();
+    }
   }
 });
