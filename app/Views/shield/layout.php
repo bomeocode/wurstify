@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-12">
                 <div class="auth-promo-link text-center text-light mt-4">
                     <h5>Was ist Wurstify!</h5>
@@ -40,7 +40,7 @@
                     <a href="https://wurstify.com" class="btn btn-lg btn-secondary">Mehr erfahren</a>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <?= $this->include('partials/footer') ?>

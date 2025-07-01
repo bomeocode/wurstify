@@ -1,5 +1,5 @@
 // const CACHE_NAME = 'eduscreen-v2'; // Beim nächsten Update z.B. auf 'eduscreen-v3' ändern
-const CACHE_NAME = "wurstify-v4.1";
+const CACHE_NAME = "wurstify-v4.2";
 const OFFLINE_URL = "offline.html";
 
 self.addEventListener("install", (event) => {
