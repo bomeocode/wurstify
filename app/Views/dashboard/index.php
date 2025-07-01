@@ -10,6 +10,10 @@
   <div id="map"></div>
 </div>
 
+<button type="button" class="fab-help open-modal-form" data-url="<?= site_url('help/guide') ?>" title="Anleitung anzeigen">
+  <i class="bi bi-question-lg"></i>
+</button>
+
 <div id="tooltip"></div>
 
 <button type="button" class="fab open-modal-form" data-url="<?= site_url('ratings/new') ?>" title="Neue Bewertung hinzufügen">

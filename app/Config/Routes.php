@@ -18,6 +18,7 @@ $routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
 $routes->get('feed', 'Feed::index', ['filter' => 'session']);
 $routes->get('feedback', 'Feedback::index');
 $routes->post('feedback/create', 'Feedback::create', ['as' => 'feedback_create']);
+$routes->get('help/guide', 'Help::index');
 
 service('auth')->routes($routes);
 

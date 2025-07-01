@@ -672,3 +672,35 @@ body {
   background-color: var(--wurstify-primary);
   color: var(--wurstify-secondary);
 }
+
+/* Styling für den schwebenden Hilfe-Button (verbesserte Version) */
+.fab-help {
+  /* Positionierung */
+  position: fixed;
+  top: calc(var(--header-height) + 15px);
+  right: 15px;
+  z-index: 1001;
+
+  /* Feste Größe für einen perfekten Kreis */
+  width: 50px;
+  height: 50px;
+
+  /* Wichtig: Flexbox zum Zentrieren des Icons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Basis-Styling */
+  border-radius: 50%;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Styling für das Icon selbst */
+.fab-help i {
+  font-size: 24px; /* Größe des Fragezeichens */
+  color: var(--wurstify-dark); /* Ihre dunkle Markenfarbe */
+}
