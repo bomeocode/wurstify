@@ -117,4 +117,30 @@ class RatingModel extends Model
     {
         return $this->countAllResults();
     }
+
+    /**
+     * Holt eine paginierte Liste aller Bewertungen für den Admin-Bereich.
+     */
+    public function getAdminListBuilder(?string $searchTerm = null)
+    {
+        $builder = $this
+            // HIER IST DIE KORREKTUR: Alle benötigten Spalten hinzugefügt
+            ->select('
+            ratings.*, 
+            users.username, 
+            vendors.name as vendor_name
+        ')
+            ->join('users', 'users.id = ratings.user_id', 'left')
+            ->join('vendors', 'vendors.id = ratings.vendor_id', 'left');
+
+        if ($searchTerm) {
+            $builder->groupStart()
+                ->like('users.username', $searchTerm)
+                ->orLike('vendors.name', $searchTerm)
+                ->orLike('ratings.comment', $searchTerm)
+                ->groupEnd();
+        }
+
+        return $builder;
+    }
 }
