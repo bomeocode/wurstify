@@ -18,7 +18,7 @@
     <meta name="theme-color" content="#ffc107">
 </head>
 
-<body style="padding-top: 56px; padding-bottom: 56px; ">
+<body style="padding-top: 56px; padding-bottom: 56px;" class="auth-page">
 
     <?= $this->include('partials/header') ?>
 
@@ -29,6 +29,16 @@
 
                 <?= $this->renderSection('main') ?>
 
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="auth-promo-link text-center text-light mt-4">
+                    <h5>Was ist Wurstify!</h5>
+                    <p>Aus einer Leidenschaft für die perfekte Bratwurst geboren.<br>Erfahre hier mehr über uns und die App.</p>
+                    <a href="https://wurstify.com" class="btn btn-lg btn-secondary">Mehr erfahren</a>
+                </div>
             </div>
         </div>
     </div>

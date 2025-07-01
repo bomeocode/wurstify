@@ -18,7 +18,7 @@
 
   /* Geben Sie die exakte Höhe Ihres Headers und Footers an. */
   --header-height: 56px;
-  --footer-height: 93px;
+  --footer-height: 75px;
 }
 
 /* Grundfarben für die Seite */
@@ -131,7 +131,7 @@ body {
     -50%
   ); /* Zieht den Button um seine halbe Breite zurück, um ihn perfekt zu zentrieren */
   bottom: calc(
-    var(--footer-height) + 20px
+    var(--footer-height) + 30px
   ); /* Positioniert ihn 20px über Ihrem Sticky Footer */
   z-index: 1001; /* Stellt sicher, dass er über der Karte, aber unter dem Tooltip liegt */
 
@@ -586,4 +586,89 @@ body {
   height: 50px;
   object-fit: cover;
   border: 2px solid #eee;
+}
+
+/* ============================================= */
+/* Wurstify Auth Page Styling                    */
+/* ============================================= */
+
+/* Definition Ihrer Markenfarben als CSS-Variablen */
+:root {
+  --wurstify-primary: #a65e2e; /* Bratwurst-Braun */
+  --wurstify-secondary: #ffc107; /* Senf-Gelb */
+  --wurstify-dark: #3d2b1f; /* Holzkohle-Braun */
+  --wurstify-light: #f5e0c3; /* Brötchen-Beige */
+  --wurstify-charcoal: #3a2e28; /* Holzkohle-Braun */
+}
+
+/* Wir geben den Auth-Seiten einen eigenen Body-Stil */
+.auth-page {
+  /* background-color: var(--wurstify-dark); */
+  background: linear-gradient(
+    160deg,
+    var(--wurstify-dark) 0%,
+    var(--wurstify-primary) 100%
+  );
+  min-height: 100vh;
+}
+
+/* Die zentrierte Karte, die das Formular enthält */
+.auth-card {
+  max-width: 540px; /* Breite erhöht */
+  margin: 1rem auto;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  background-color: #fff; /* Hintergrundfarbe explizit setzen */
+}
+
+/* Das Logo über der Karte */
+.auth-logo {
+  width: 128px;
+  height: 128px;
+  margin-bottom: 1rem;
+}
+
+/* Das Styling für die Formular-Buttons */
+.auth-card .btn-primary {
+  background-color: var(--wurstify-secondary);
+  border-color: var(--wurstify-dark);
+  color: var(--wurstify-dark);
+}
+
+.auth-card .btn-primary:hover {
+  background-color: var(--wurstify-primary);
+  color: var(--wurstify-secondary);
+}
+
+/* Der präsente Link am unteren Rand der Karte */
+.auth-switch-link {
+  background-color: #f8f9fa;
+  padding: 1.25rem; /* Eigener Innenabstand statt negativer Margin */
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+  border-bottom-left-radius: 0.5rem; /* Runde Ecken unten anpassen */
+  border-bottom-right-radius: 0.5rem;
+}
+
+.auth-promo-link {
+  /* Passt die Breite an die der Login-Karte an */
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+}
+
+/* Wir verwenden die Wurstify-Farbe für den Button */
+.auth-promo-link .btn-secondary {
+  background-color: var(--wurstify-secondary);
+  border-color: var(--wurstify-dark);
+  color: var(--wurstify-dark);
+}
+
+.auth-promo-link .btn-secondary:hover {
+  background-color: var(--wurstify-primary);
+  color: var(--wurstify-secondary);
 }
