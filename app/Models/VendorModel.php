@@ -88,4 +88,23 @@ class VendorModel extends Model
             ->groupBy('vendors.id')
             ->findAll();
     }
+
+    /**
+     * Holt eine paginierte und durchsuchbare Liste aller Anbieter.
+     * @param string|null $searchTerm
+     * @return array
+     */
+    public function getPaginatedVendors(?string $searchTerm = null)
+    {
+        $builder = $this->orderBy('name', 'ASC');
+
+        if ($searchTerm) {
+            $builder->groupStart()
+                ->like('name', $searchTerm)
+                ->orLike('address', $searchTerm)
+                ->groupEnd();
+        }
+
+        return $builder->paginate(15); // 15 Anbieter pro Seite
+    }
 }

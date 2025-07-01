@@ -42,8 +42,14 @@ $routes->group('api', ['filter' => 'session'], static function ($routes) {
 
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('/', 'Admin\DashboardController::index', ['as' => 'admin_dashboard']);
+
   $routes->get('users', 'Admin\UserController::index');
   $routes->get('users/edit/(:num)', 'Admin\UserController::edit/$1');
   $routes->post('users/update/(:num)', 'Admin\UserController::update/$1');
   $routes->get('users/delete/(:num)', 'Admin\UserController::delete/$1');
+
+  $routes->get('vendors', 'Admin\VendorController::index');
+  $routes->get('vendors/edit/(:num)', 'Admin\VendorController::edit/$1');
+  $routes->post('vendors/update/(:num)', 'Admin\VendorController::update/$1');
+  $routes->get('vendors/delete/(:num)', 'Admin\VendorController::delete/$1');
 });

@@ -26,7 +26,7 @@
         <div class="card-body">
           <h5 class="card-title">Anbieter (Vendors)</h5>
           <p class="display-4 fw-bold"><?= esc($vendorCount) ?></p>
-          <a href="#" class="btn btn-outline-secondary btn-sm">Anbieter verwalten</a>
+          <a href="<?= site_url('admin/vendors') ?>" class="btn btn-outline-secondary btn-sm">Anbieter verwalten</a>
         </div>
       </div>
     </div>
@@ -36,7 +36,7 @@
         <div class="card-body">
           <h5 class="card-title">Bewertungen</h5>
           <p class="display-4 fw-bold"><?= esc($ratingCount) ?></p>
-          <a href="#" class="btn btn-outline-secondary btn-sm">Bewertungen verwalten</a>
+          <a href="<?= site_url('admin/ratings') ?>" class="btn btn-outline-secondary btn-sm">Bewertungen verwalten</a>
         </div>
       </div>
     </div>
