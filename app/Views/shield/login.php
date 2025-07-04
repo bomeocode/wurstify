@@ -27,7 +27,7 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="floatingPasswordInput" name="password" required>
+                            <input type="password" class="form-control" id="floatingPasswordInput" name="password" placeholder="Passwort" required>
                             <label for="floatingPasswordInput"><?= lang('Auth.password') ?></label>
                         </div>
 
