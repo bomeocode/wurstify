@@ -22,8 +22,8 @@
                         <?= csrf_field() ?>
 
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingEmailInput" name="email" value="<?= old('email') ?>" required>
-                            <label for="floatingEmailInput"><?= lang('Auth.email') ?></label>
+                            <input type="text" class="form-control" id="floatingCredentialInput" name="credential" placeholder="Benutzername oder E-Mail" required>
+                            <label for="floatingCredentialInput">Benutzername oder E-Mail</label>
                         </div>
 
                         <div class="form-floating mb-3">

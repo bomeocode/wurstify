@@ -20,6 +20,10 @@ $routes->get('feedback', 'Feedback::index');
 $routes->post('feedback/create', 'Feedback::create', ['as' => 'feedback_create']);
 $routes->get('help/guide', 'Help::index');
 
+// Leitet die Standard-Login-URL auf unsere neue Logik um.
+$routes->get('login', 'AuthController::loginView');
+// Verarbeitet die POST-Daten unseres neuen Formulars.
+$routes->post('login', 'AuthController::handleLogin');
 service('auth')->routes($routes);
 
 // Profil bearbeiten
