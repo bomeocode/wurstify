@@ -11,7 +11,7 @@ class AvatarUpload extends ResourceController
         $validationRule = [
             'image' => [
                 'label' => 'Bilddatei',
-                'rules' => 'uploaded[image]|is_image[image]|max_size[image,2048]',
+                'rules' => 'uploaded[image]|is_image[image]|max_size[image,20480]',
             ],
         ];
 
