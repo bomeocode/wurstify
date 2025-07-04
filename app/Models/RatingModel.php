@@ -85,8 +85,10 @@ class RatingModel extends Model
     /**
      * Holt paginierte Feed-Einträge mit expliziten Spalten.
      */
+    // In app/Models/RatingModel.php
     public function getPaginatedFeed()
     {
+        // Wir wählen alle Spalten explizit aus, um Mehrdeutigkeit zu vermeiden
         return $this->select([
             'ratings.id',
             'ratings.comment',
@@ -142,5 +144,57 @@ class RatingModel extends Model
         }
 
         return $builder;
+    }
+
+    /**
+     * Holt eine paginierte Liste von Bewertungen für einen spezifischen Anbieter.
+     * @param int $vendorId
+     * @return array
+     */
+    public function getPaginatedRatingsForVendor(int $vendorId)
+    {
+        return $this->select('ratings.*, users.username, users.avatar')
+            ->join('users', 'users.id = ratings.user_id', 'left')
+            ->where('ratings.vendor_id', $vendorId)
+            ->orderBy('ratings.created_at', 'DESC')
+            ->paginate(10); // 10 Bewertungen pro Seite
+    }
+
+    /**
+     * Zählt alle Bewertungen für einen bestimmten Anbieter.
+     */
+    public function countForVendor(int $vendorId): int
+    {
+        return $this->where('vendor_id', $vendorId)->countAllResults();
+    }
+
+    /**
+     * Holt eine paginierte Liste von Bewertungen für einen bestimmten Anbieter.
+     */
+    public function getPageForVendor(int $vendorId, int $limit = 10, int $offset = 0)
+    {
+        return $this->select('ratings.*, users.username, users.avatar')
+            ->join('users', 'users.id = ratings.user_id', 'left')
+            ->where('ratings.vendor_id', $vendorId)
+            ->orderBy('ratings.created_at', 'DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResult(); // Gibt Objekte zurück, was für JS gut ist
+    }
+
+    // In app/Models/RatingModel.php
+
+    /**
+     * Holt eine paginierte Liste von Bewertungen für einen bestimmten Anbieter.
+     */
+    public function getRatingsForVendor(int $vendorId, int $limit = 10, int $offset = 0)
+    {
+        return $this->select('ratings.*, users.username, users.avatar')
+            ->join('users', 'users.id = ratings.user_id', 'left')
+            ->where('ratings.vendor_id', $vendorId)
+            ->orderBy('ratings.created_at', 'DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResult(); // Gibt Objekte zurück
     }
 }

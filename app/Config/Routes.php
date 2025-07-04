@@ -14,7 +14,7 @@ $routes->get('/feed', 'Feed::index');
 $routes->get('/merch', 'Merch::index');
 $routes->get('/settings', 'Settings::index');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
-$routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
+//$routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
 $routes->get('feed', 'Feed::index', ['filter' => 'session']);
 $routes->get('feedback', 'Feedback::index');
 $routes->post('feedback/create', 'Feedback::create', ['as' => 'feedback_create']);
@@ -38,6 +38,7 @@ $routes->group('api', ['filter' => 'session'], static function ($routes) {
   // NEUE ROUTEN:
   $routes->get('feed/ratings', 'Api\FeedController::index');
   $routes->get('ratings/(:num)', 'Api\RatingController::show/$1');
+  $routes->get('vendors/(:segment)/ratings', 'Api\VendorController::ratings/$1');
 });
 
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {

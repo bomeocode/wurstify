@@ -8,7 +8,7 @@
  */
 export function initializeRatingFormScripts(container, showToast) {
   // --- Setup der Elemente innerhalb des Containers ---
-  console.log("[DEBUG] A: initializeRatingFormScripts gestartet.");
+  // console.log("[DEBUG] A: initializeRatingFormScripts gestartet.");
 
   const useLocationBtn = container.querySelector("#use-current-location");
   const addressField = container.querySelector("#address_manual");
@@ -96,9 +96,9 @@ export function initializeRatingFormScripts(container, showToast) {
 
   // --- SETUP der Elemente ---
   const uploaderWraps = container.querySelectorAll(".rating-image-upload-wrap");
-  console.log(
-    `[DEBUG] B: ${uploaderWraps.length} Upload-Container (.rating-image-upload-wrap) gefunden.`
-  );
+  // console.log(
+  //   `[DEBUG] B: ${uploaderWraps.length} Upload-Container (.rating-image-upload-wrap) gefunden.`
+  // );
 
   // --- Logik für den Bilder-Uploader ---
   container.querySelectorAll(".rating-image-upload-wrap").forEach((wrap) => {
@@ -108,10 +108,10 @@ export function initializeRatingFormScripts(container, showToast) {
 
     if (fileInput) {
       fileInput.addEventListener("change", function () {
-        console.log(
-          `%c[DEBUG] C: DATEI AUSGEWÄHLT in Slot ${slot}!`,
-          "background: #28a745; color: white;"
-        );
+        // console.log(
+        //   `%c[DEBUG] C: DATEI AUSGEWÄHLT in Slot ${slot}!`,
+        //   "background: #28a745; color: white;"
+        // );
         if (this.files[0]) handleFileUpload(this, container);
       });
     }
@@ -128,9 +128,9 @@ export function initializeRatingFormScripts(container, showToast) {
     const wrap = container.querySelector(
       `.rating-image-upload-wrap[data-slot="${slot}"]`
     );
-    console.log(
-      `[DEBUG] D: handleFileUpload wird für Slot ${slot} ausgeführt.`
-    );
+    // console.log(
+    //   `[DEBUG] D: handleFileUpload wird für Slot ${slot} ausgeführt.`
+    // );
 
     if (!wrap || !file) return;
 
@@ -138,10 +138,10 @@ export function initializeRatingFormScripts(container, showToast) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const imgElement = wrap.querySelector(".rating-file-upload-image"); // KORRIGIERTER SELEKTOR
-      console.log(
-        `[DEBUG] E: Suche nach .rating-file-upload-image für lokale Vorschau. Gefunden:`,
-        imgElement
-      );
+      // console.log(
+      //   `[DEBUG] E: Suche nach .rating-file-upload-image für lokale Vorschau. Gefunden:`,
+      //   imgElement
+      // );
       if (imgElement) {
         imgElement.src = e.target.result;
       }
@@ -163,15 +163,15 @@ export function initializeRatingFormScripts(container, showToast) {
   }
 
   function uploadRatingFile(file, slot, container, showToast) {
-    console.log(
-      `[DEBUG] F: uploadRatingFile wird für Slot ${slot} ausgeführt.`
-    );
+    // console.log(
+    //   `[DEBUG] F: uploadRatingFile wird für Slot ${slot} ausgeführt.`
+    // );
 
     const formData = new FormData();
     formData.append("image", file);
     const csrfInput = container.querySelector('form input[name^="csrf_"]');
 
-    console.log("[DEBUG] G: Suche nach CSRF-Token. Gefunden:", csrfInput);
+    // console.log("[DEBUG] G: Suche nach CSRF-Token. Gefunden:", csrfInput);
 
     if (csrfInput) {
       formData.append(csrfInput.name, csrfInput.value);
@@ -188,9 +188,9 @@ export function initializeRatingFormScripts(container, showToast) {
     // Wir können sie bei Bedarf wieder hinzufügen.
 
     xhr.onload = function () {
-      console.log(
-        `[DEBUG] H: Upload für Slot ${slot} beendet mit Status ${xhr.status}`
-      );
+      // console.log(
+      //   `[DEBUG] H: Upload für Slot ${slot} beendet mit Status ${xhr.status}`
+      // );
 
       if (xhr.status === 201) {
         const data = JSON.parse(xhr.responseText);
@@ -198,10 +198,10 @@ export function initializeRatingFormScripts(container, showToast) {
         const imagePreview = container.querySelector(
           `.rating-image-upload-wrap[data-slot="${slot}"] .rating-file-upload-image`
         );
-        console.log(
-          `[DEBUG] I: Suche nach .rating-file-upload-image für Server-Vorschau. Gefunden:`,
-          imagePreview
-        );
+        // console.log(
+        //   `[DEBUG] I: Suche nach .rating-file-upload-image für Server-Vorschau. Gefunden:`,
+        //   imagePreview
+        // );
 
         if (hiddenInput) hiddenInput.value = data.filename;
         if (imagePreview)

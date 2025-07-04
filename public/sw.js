@@ -1,5 +1,4 @@
-// const CACHE_NAME = 'eduscreen-v2'; // Beim nächsten Update z.B. auf 'eduscreen-v3' ändern
-const CACHE_NAME = "wurstify-v4.3";
+const CACHE_NAME = "wurstify-v4.4";
 const OFFLINE_URL = "offline.html";
 
 self.addEventListener("install", (event) => {
@@ -35,7 +34,6 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// NEU HINZUGEFÜGT: Lausche auf Nachrichten vom Client
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();

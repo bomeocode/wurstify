@@ -212,6 +212,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   // Ersetzen Sie die bestehende initializeLazyLoading-Funktion in dashboard.js
 
+  // Ersetzen Sie die bestehende initializeLazyLoading-Funktion in dashboard.js
+
+  // In public/js/dashboard.js
+
   function initializeLazyLoading(container, vendorUuid) {
     const ratingsList = container.querySelector("#ratings-list");
     const loadingIndicator = container.querySelector("#loading-indicator");
@@ -239,7 +243,6 @@ document.addEventListener("DOMContentLoaded", function () {
       loadingIndicator.style.display = "block";
 
       try {
-        // Die API-Route für die Bewertungen eines spezifischen Vendors
         const response = await fetch(
           `/api/vendors/${vendorUuid}/ratings?page=${nextPage}`
         );
@@ -257,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 parseFloat(rating.rating_service)) /
               5;
 
-            // Wir verwenden hier das gleiche, "schöne" Layout wie im Haupt-Feed
+            // HIER IST DIE WIEDERHERGESTELLTE, DETAILLIERTE ANSICHT
             el.innerHTML = `
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -357,7 +360,7 @@ document.addEventListener("DOMContentLoaded", function () {
           loadingIndicator.innerHTML =
             ratingsList.children.length === 0
               ? '<p class="text-muted text-center my-4">Für diesen Anbieter gibt es noch keine Bewertungen.</p>'
-              : '<p class="text-muted text-center my-4">Ende der Bewertungen.</p>';
+              : '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
         } else {
           loadingIndicator.style.display = "none";
         }
@@ -372,10 +375,8 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       { root: modalElement, threshold: 0.1 }
     );
-
     if (trigger) {
       lazyLoadObserver.observe(trigger);
-      loadRatings();
     }
   }
 });
