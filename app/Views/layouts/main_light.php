@@ -29,6 +29,11 @@
 
 <body style="padding-top: 56px; padding-bottom: 56px; ">
 
+  <div id="update-prompt" style="display: none; z-index: 2000; position: sticky; top: 0;" class="alert alert-primary m-0 rounded-0 border-0 border-bottom" role="alert">
+    <span>Eine neue Version von Wurstify ist verfügbar!</span>
+    <button id="reload-button" class="btn btn-sm btn-primary ms-3">Jetzt aktualisieren</button>
+  </div>
+
   <?= $this->include('partials/header', ['currentController' => $currentController]) ?>
 
   <main>
@@ -95,45 +100,44 @@
   }
   ?>
 
-  <div id="update-prompt" style="display:none; position: fixed; bottom: 20px; left: 20px; background-color: #333; color: white; padding: 15px; border-radius: 5px; z-index: 1000;">
-    <span>Eine neue Version ist verfügbar!</span>
-    <button id="reload-button" style="margin-left: 15px; background-color: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Neu laden</button>
-  </div>
+
 
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('https://app.wurstify.com/sw.js')
+        navigator.serviceWorker.register('/sw.js')
           .then(registration => {
-            console.log('Service Worker registriert.');
+            console.log('Service Worker: Registrierung erfolgreich.');
 
             const showUpdatePrompt = (worker) => {
               const updatePrompt = document.getElementById('update-prompt');
               const reloadButton = document.getElementById('reload-button');
-              reloadButton.onclick = () => {
-                worker.postMessage({
-                  type: 'SKIP_WAITING'
-                });
 
-                window.location.reload();
-              };
-
-              updatePrompt.style.display = 'block';
-              console.log('Neuer Service Worker wartet. Update-Benachrichtigung wird angezeigt.');
+              if (updatePrompt && reloadButton) {
+                updatePrompt.style.display = 'flex';
+                reloadButton.onclick = () => {
+                  // Der Button sendet jetzt NUR noch die Nachricht.
+                  worker.postMessage({
+                    type: 'SKIP_WAITING'
+                  });
+                  // Wir geben dem Nutzer sofort visuelles Feedback.
+                  updatePrompt.innerHTML = '<span>Update wird installiert...</span><div class="spinner-border spinner-border-sm ms-2" role="status"></div>';
+                };
+              }
             };
 
+            // Prüfen, ob bereits ein Worker wartet
             if (registration.waiting) {
               showUpdatePrompt(registration.waiting);
             }
 
+            // Lauschen auf zukünftige Updates
             registration.onupdatefound = () => {
               const installingWorker = registration.installing;
               if (installingWorker) {
                 installingWorker.onstatechange = () => {
                   if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    if (registration.waiting) {
-                      showUpdatePrompt(registration.waiting);
-                    }
+                    showUpdatePrompt(installingWorker);
                   }
                 };
               }
@@ -142,8 +146,34 @@
           .catch(error => {
             console.log('Service Worker Registrierung fehlgeschlagen:', error);
           });
+
+        // DIESER LISTENER IST DIE EIGENTLICHE LÖSUNG
+        // Er wartet darauf, dass der neue Worker wirklich die Kontrolle übernimmt.
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          // Erst wenn der Controller gewechselt hat, laden wir die Seite neu.
+          window.location.reload();
+          refreshing = true;
+        });
       });
     }
+
+    // const showUpdatePrompt = (worker) => {
+    //   const updatePrompt = document.getElementById('update-prompt');
+    //   const reloadButton = document.getElementById('reload-button');
+    //   if (!updatePrompt || !reloadButton) return;
+
+    //   // Füge die Layout-Klassen hinzu, wenn der Hinweis gezeigt wird
+    //   updatePrompt.classList.add('d-flex', 'justify-content-between', 'align-items-center');
+    //   updatePrompt.style.display = 'block'; // 'block' ist ausreichend, da die Klassen flex steuern
+
+    //   reloadButton.onclick = () => {
+    //     worker.postMessage({
+    //       type: 'SKIP_WAITING'
+    //     });
+    //   };
+    // };
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>

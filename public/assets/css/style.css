@@ -704,3 +704,24 @@ body {
   font-size: 24px; /* Größe des Fragezeichens */
   color: var(--wurstify-dark); /* Ihre dunkle Markenfarbe */
 }
+
+/* Styling für das Klick-Feedback auf Navigations-Elementen */
+.nav-link.is-active-feedback {
+  /* Ein leichter, dunklerer Hintergrund, der kurz aufleuchtet */
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 0.5rem;
+  /* Optional: eine subtile Animation */
+  animation: pulse-feedback 0.3s ease-out;
+}
+
+@keyframes pulse-feedback {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

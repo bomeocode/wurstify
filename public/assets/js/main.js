@@ -47,3 +47,26 @@ export function showToast(message, type = "info") {
 
   toast.show();
 }
+
+document.addEventListener("click", function (e) {
+  const feedbackLink = e.target.closest(".nav-feedback");
+
+  if (feedbackLink) {
+    // 1. Haptisches Feedback (funktioniert nur auf unterstützten Mobilgeräten)
+    if (navigator.vibrate) {
+      navigator.vibrate(50); // Eine sehr kurze Vibration von 50ms
+    }
+
+    // 2. Visuelles Feedback: Klasse für den Klick-Effekt hinzufügen
+    feedbackLink.classList.add("is-active-feedback");
+
+    // Die Klasse nach einer kurzen Verzögerung wieder entfernen,
+    // falls die Navigation aus irgendeinem Grund nicht stattfindet.
+    setTimeout(() => {
+      feedbackLink.classList.remove("is-active-feedback");
+    }, 400);
+
+    // Wichtig: Wir rufen hier NICHT e.preventDefault() auf,
+    // da der Link ja seine normale Funktion (Navigation oder Modal öffnen) ausführen soll.
+  }
+});
