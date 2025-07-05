@@ -129,7 +129,13 @@ class Ratings extends ResourceController
             if ($existingVendor) {
                 $vendorId = $existingVendor['id'];
             } else {
-                $newVendorData = ['name' => $vendorName, 'address' => $manualAddress, 'latitude' => $lat, 'longitude' => $lon];
+                $newVendorData = [
+                    'name' => $vendorName,
+                    'address' => $manualAddress,
+                    'latitude' => $lat,
+                    'longitude' => $lon,
+                    'category'  => $this->request->getPost('vendor_category')
+                ];
                 $vendorId = $vendorModel->insert($newVendorData);
                 if (!$vendorId) {
                     $toastData = ['message' => 'Der neue Anbieter konnte nicht in der Datenbank gespeichert werden.', 'type' => 'danger'];

@@ -33,6 +33,18 @@
   <label for="vendor_name" class="form-label">Name des Anbieters*</label>
   <input type="text" class="form-control" name="vendor_name" id="vendor_name" required value="<?= old('vendor_name', $vendor['name'] ?? '') ?>" <?= isset($vendor) ? 'readonly' : '' ?>>
 </div>
+<?php if (!isset($vendor)): ?>
+  <div class="mb-4" id="vendor-category-block">
+    <label class="form-label d-block">Art des Anbieters*</label>
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="vendor_category" id="category-stationaer" value="stationär" autocomplete="off" checked>
+      <label class="btn btn-outline-primary" for="category-stationaer">Stationär (Fester Standort)</label>
+
+      <input type="radio" class="btn-check" name="vendor_category" id="category-mobil" value="mobil" autocomplete="off">
+      <label class="btn btn-outline-primary" for="category-mobil">Mobil / Event</label>
+    </div>
+  </div>
+<?php endif; ?>
 <hr>
 <h5 class="mt-4">Ihre Bewertung</h5>
 
@@ -61,9 +73,11 @@
 
           <div class="rating-file-upload-content">
             <img class="rating-file-upload-image" src="#" alt="Vorschau" />
+
             <div class="rating-progress-bar-wrap">
               <div class="rating-progress-bar"></div>
             </div>
+
             <div class="rating-image-title-wrap">
               <button type="button" class="rating-remove-image">Entfernen</button>
             </div>

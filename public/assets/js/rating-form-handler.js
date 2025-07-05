@@ -89,6 +89,10 @@ export function initializeRatingFormScripts(container, showToast) {
         if (vendorNameField) vendorNameField.value = vendor.name;
         if (addressField) addressField.value = vendor.address || "";
         suggestionsContainer.innerHTML = "";
+        const categoryBlock = container.querySelector("#vendor-category-block");
+        if (categoryBlock) {
+          categoryBlock.style.display = "none";
+        }
       });
       suggestionsContainer.appendChild(link);
     });
@@ -163,15 +167,9 @@ export function initializeRatingFormScripts(container, showToast) {
   }
 
   function uploadRatingFile(file, slot, container, showToast) {
-    // console.log(
-    //   `[DEBUG] F: uploadRatingFile wird für Slot ${slot} ausgeführt.`
-    // );
-
     const formData = new FormData();
     formData.append("image", file);
     const csrfInput = container.querySelector('form input[name^="csrf_"]');
-
-    // console.log("[DEBUG] G: Suche nach CSRF-Token. Gefunden:", csrfInput);
 
     if (csrfInput) {
       formData.append(csrfInput.name, csrfInput.value);
@@ -181,16 +179,32 @@ export function initializeRatingFormScripts(container, showToast) {
       return;
     }
 
+    // NEU: Rufen die Helfer-Funktion auf, um alles zu deaktivieren
+    setFormControlsDisabled(container, true);
+    const wrap = container.querySelector(
+      `.rating-image-upload-wrap[data-slot="${slot}"]`
+    );
+    const progressBar = wrap.querySelector(".rating-progress-bar");
+    const progressWrap = wrap.querySelector(".rating-progress-bar-wrap");
+
+    // Mache den Ladebalken-Container sichtbar und setze ihn auf 0%
+    if (progressWrap) progressWrap.style.display = "block";
+    if (progressBar) progressBar.style.width = "0%";
+
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/rating-image-upload", true);
 
-    // Fortschrittsbalken-Logik fehlt hier, da sie im HTML nicht mehr vorgesehen war
-    // Wir können sie bei Bedarf wieder hinzufügen.
+    // NEU: Fortschrittsbalken-Logik wiederherstellen
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && progressBar) {
+        const percentComplete = (e.loaded / e.total) * 100;
+        progressBar.style.width = percentComplete + "%";
+      }
+    };
 
     xhr.onload = function () {
-      // console.log(
-      //   `[DEBUG] H: Upload für Slot ${slot} beendet mit Status ${xhr.status}`
-      // );
+      setFormControlsDisabled(container, false);
+      if (progressWrap) progressWrap.style.display = "none";
 
       if (xhr.status === 201) {
         const data = JSON.parse(xhr.responseText);
@@ -198,10 +212,6 @@ export function initializeRatingFormScripts(container, showToast) {
         const imagePreview = container.querySelector(
           `.rating-image-upload-wrap[data-slot="${slot}"] .rating-file-upload-image`
         );
-        // console.log(
-        //   `[DEBUG] I: Suche nach .rating-file-upload-image für Server-Vorschau. Gefunden:`,
-        //   imagePreview
-        // );
 
         if (hiddenInput) hiddenInput.value = data.filename;
         if (imagePreview)
@@ -217,6 +227,37 @@ export function initializeRatingFormScripts(container, showToast) {
         removeUpload(slot, container);
       }
     };
+
+    xhr.onerror = function () {
+      // NEU: Buttons auch bei Netzwerkfehler wieder aktivieren
+      setFormControlsDisabled(container, false);
+      if (progressWrap) progressWrap.style.display = "none";
+      showToast("Netzwerkfehler beim Upload.", "danger");
+    };
+
     xhr.send(formData);
+  }
+
+  // NEU: Die zentrale Helfer-Funktion zum Deaktivieren der Elemente
+  function setFormControlsDisabled(container, disabled) {
+    const submitButton = container.querySelector('button[type="submit"]');
+    const uploadLabels = container.querySelectorAll(
+      ".rating-image-upload-wrap label"
+    );
+    const fileInputs = container.querySelectorAll(".rating-file-upload-input");
+    const removeButtons = container.querySelectorAll(".rating-remove-image");
+
+    if (submitButton) submitButton.disabled = disabled;
+    fileInputs.forEach((input) => (input.disabled = disabled));
+    removeButtons.forEach((button) => (button.disabled = disabled));
+
+    // Um die "Ändern"-Buttons visuell auszugrauen
+    if (uploadLabels) {
+      uploadLabels.forEach((label) => {
+        disabled
+          ? label.classList.add("disabled")
+          : label.classList.remove("disabled");
+      });
+    }
   }
 }
