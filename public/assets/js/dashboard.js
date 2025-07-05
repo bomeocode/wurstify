@@ -2,8 +2,6 @@
 import { initializeRatingFormScripts } from "./rating-form-handler.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Dashboard Skript (modular) geladen.");
-
   // === 1. SETUP & KARTEN-INITIALISIERUNG ===
   const mapContainer = document.getElementById("map-container");
   if (!mapContainer) return;
