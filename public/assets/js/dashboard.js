@@ -49,6 +49,13 @@ document.addEventListener("DOMContentLoaded", function () {
     popupAnchor: [0, -16],
   });
 
+  const mobilIcon = L.icon({
+    iconUrl: "/assets/img/bratwurst-icon-mobil.svg",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16],
+  });
+
   const markers = L.markerClusterGroup({
     showCoverageOnHover: false,
     iconCreateFunction: function (cluster) {
@@ -71,8 +78,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (vendorsData.length > 0) {
     vendorsData.forEach((vendor) => {
+      const iconToUse = vendor.category === "mobil" ? mobilIcon : bratwurstIcon;
+      // console.log("Vendor-Category: " + vendor.category);
       const marker = L.marker([vendor.latitude, vendor.longitude], {
-        icon: bratwurstIcon,
+        icon: iconToUse,
       });
       const overallAvg =
         (parseFloat(vendor.avg_taste) +

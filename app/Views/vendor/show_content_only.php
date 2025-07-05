@@ -1,5 +1,9 @@
 <div class="container">
-  <h1><?= esc($vendor['vendor_name']) ?></h1>
+  <h1><?= esc($vendor['vendor_name']) ?>
+    <?php if ($vendor['category'] === 'mobil'): ?>
+      <span class="badge bg-warning text-dark ms-2">Mobil</span>
+    <?php endif; ?>
+  </h1>
   <p>Durchschnittliche Bewertung: <b><?= number_format((floatval($vendor['avg_taste']) + floatval($vendor['avg_appearance']) + floatval($vendor['avg_presentation']) + floatval($vendor['avg_price']) + floatval($vendor['avg_service'])) / 5, 1) ?> ★</b> aus <?= $vendor['total_ratings'] ?> Bewertungen.</p>
 
   <div class="d-grid my-4">

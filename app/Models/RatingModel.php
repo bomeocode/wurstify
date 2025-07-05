@@ -71,6 +71,7 @@ class RatingModel extends Model
             'ratings.image3',
             'vendors.name as vendor_name',
             'vendors.address as vendor_address',
+            'vendors.category as vendor_category',
             'users.username',
             'users.avatar'
         ])
@@ -103,6 +104,7 @@ class RatingModel extends Model
             'ratings.image3',
             'vendors.name as vendor_name',
             'vendors.address as vendor_address',
+            'vendors.category as vendor_category',
             'users.username',
             'users.avatar'
         ])

@@ -15,7 +15,6 @@ class Dashboard extends BaseController
 
         $data = [
             'user'    => auth()->user(),
-            // Wir übergeben jetzt die Liste der Anbieter mit Durchschnitts-Ratings
             'vendors' => $vendorModel->getVendorsWithAverageRatings()
         ];
 

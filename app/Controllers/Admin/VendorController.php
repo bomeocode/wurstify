@@ -45,6 +45,7 @@ class VendorController extends BaseController
             'address'   => 'required|max_length[255]',
             'latitude'  => 'required|decimal',
             'longitude' => 'required|decimal',
+            'category'  => 'required',
         ];
 
         if (!$this->validate($rules)) {

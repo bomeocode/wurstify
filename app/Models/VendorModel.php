@@ -11,7 +11,7 @@ class VendorModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
-    protected $allowedFields    = ['uuid', 'name', 'address', 'latitude', 'longitude'];
+    protected $allowedFields    = ['uuid', 'name', 'address', 'latitude', 'longitude', 'category'];
     protected $useTimestamps    = true;
     protected $beforeInsert     = ['generateUUID'];
 
@@ -74,7 +74,7 @@ class VendorModel extends Model
     public function getVendorsWithAverageRatings()
     {
         return $this->select('
-                vendors.uuid, vendors.name as vendor_name, vendors.latitude, vendors.longitude,
+                vendors.uuid, vendors.name as vendor_name, vendors.latitude, vendors.longitude,vendors.category,
                 AVG(ratings.rating_taste) as avg_taste,
                 AVG(ratings.rating_appearance) as avg_appearance,
                 AVG(ratings.rating_presentation) as avg_presentation,

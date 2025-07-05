@@ -141,11 +141,16 @@ document.addEventListener("DOMContentLoaded", function () {
               parseFloat(rating.rating_service)) /
             5;
 
-          // HIER IST DER VOLLSTÄNDIGE HTML-INHALT FÜR DIE KARTE:
           card.innerHTML = `
                     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                           <h5 class="mb-0">${rating.vendor_name}</h5>
+                           <h5 class="mb-0">${rating.vendor_name} 
+                                  ${
+                                    rating.vendor_category === "mobil"
+                                      ? '<span class="badge bg-warning text-dark ms-2">Mobil</span>'
+                                      : ""
+                                  }
+                            </h5>
                            <small class="text-muted">${
                              rating.vendor_address || ""
                            }</small>

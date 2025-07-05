@@ -16,6 +16,13 @@
     <label for="address" class="form-label">Adresse</label>
     <input type="text" name="address" class="form-control" value="<?= old('address', $vendor['address']) ?>" required>
   </div>
+  <div class="mb-3">
+    <label for="category" class="form-label">Kategorie</label>
+    <select name="category" id="category" class="form-select">
+      <option value="stationär" <?= ($vendor['category'] === 'stationär') ? 'selected' : '' ?>>Stationär (Fester Standort)</option>
+      <option value="mobil" <?= ($vendor['category'] === 'mobil') ? 'selected' : '' ?>>Mobil (Event, Food Truck)</option>
+    </select>
+  </div>
   <div class="row">
     <div class="col-md-6 mb-3">
       <label for="latitude" class="form-label">Latitude</label>
