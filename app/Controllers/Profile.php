@@ -19,6 +19,7 @@ class Profile extends BaseController
 
         $rules = [
             'username' => "required|alpha_numeric_space|min_length[3]|max_length[30]|is_unique[users.username,id,{$user->id}]",
+            'bio'      => 'permit_empty|string|max_length[255]',
         ];
 
         // NEU: Das "Wörterbuch" für die "Details"-Validierung
@@ -29,7 +30,10 @@ class Profile extends BaseController
                 'min_length'          => 'Der Benutzername muss mindestens 3 Zeichen lang sein.',
                 'max_length'          => 'Der Benutzername darf maximal 30 Zeichen lang sein.',
                 'is_unique'           => 'Dieser Benutzername ist leider schon vergeben.',
-            ]
+            ],
+            'bio' => [
+                'max_length'          => 'Die Kurzinfo darf maximal 255 Zeichen lang sein.',
+            ],
         ];
 
         // NEU: Das $messages-Array wird als zweiter Parameter übergeben
@@ -42,6 +46,7 @@ class Profile extends BaseController
         $updateData = [
             'username' => $this->request->getPost('username'),
             'avatar'   => $this->request->getPost('avatar'),
+            'bio'      => $this->request->getPost('bio'),
         ];
 
         if ($users->update($user->id, $updateData)) {

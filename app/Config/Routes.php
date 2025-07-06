@@ -42,6 +42,7 @@ $routes->group('api', ['filter' => 'session'], static function ($routes) {
   $routes->get('ratings/(:num)', 'Api\RatingController::show/$1');
   $routes->get('vendors/(:segment)/ratings', 'Api\VendorController::ratings/$1');
   $routes->get('feed/new-count', 'Api\FeedController::newCount');
+  $routes->get('users/(:num)', 'Api\UserController::show/$1');
 });
 
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
@@ -63,4 +64,8 @@ $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('ratings/delete/(:num)', 'Admin\RatingController::delete/$1');
 
   $routes->get('tools/cleanup_images', 'Admin\ToolsController::cleanupImages', ['as' => 'admin_cleanup_images']);
+
+  $routes->get('levels', 'Admin\UserLevelController::index', ['as' => 'admin_levels_index']);
+  $routes->get('levels/(:num)/edit', 'Admin\UserLevelController::edit/$1', ['as' => 'admin_level_edit']);
+  $routes->post('levels/(:num)/update', 'Admin\UserLevelController::update/$1', ['as' => 'admin_level_update']);
 });

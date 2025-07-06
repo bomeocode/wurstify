@@ -33,6 +33,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // === EVENT LISTENER (Jetzt für alle Modal-Trigger auf dieser Seite) ===
   document.addEventListener("click", async function (e) {
+    // NEU: Erkennt Klicks auf Benutzer-Links
+    const userTrigger = e.target.closest(".open-user-modal");
+    if (userTrigger) {
+      e.preventDefault();
+      // Wir verwenden unsere universelle Lade-Funktion
+      window.loadContentIntoModal(userTrigger.dataset.url, "Benutzerprofil");
+    }
+
     // Fängt Klicks für "Weiterlesen", "Bewerten" und "Feedback" ab
     const triggerButton = e.target.closest(
       ".open-single-rating-modal, .open-modal-form"
@@ -259,9 +267,12 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="ms-2 text-end">
            <div class="d-flex align-items-center">
                 <div class="me-2">
-                    Bewertet von <strong>${
-                      rating.username || "Anonym"
-                    }</strong><br>
+                    Bewertet von 
+                    <a href="#" class="open-user-modal" data-url="/api/users/${
+                      rating.user_id
+                    }">
+                        <strong>${rating.username || "Anonym"}</strong>
+                    </a><br>
                     <span style="font-size: 0.8em;">am ${new Date(
                       rating.created_at
                     ).toLocaleDateString("de-DE")}</span>

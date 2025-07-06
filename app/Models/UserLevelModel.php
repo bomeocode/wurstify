@@ -6,13 +6,13 @@ use CodeIgniter\Model;
 
 class UserLevelModel extends Model
 {
-    protected $table            = 'userlevels';
+    protected $table            = 'user_levels';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
+    protected $returnType       = 'object';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
+    protected $allowedFields    = ['level_number', 'name', 'min_ratings'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;

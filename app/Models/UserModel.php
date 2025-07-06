@@ -14,7 +14,8 @@ class UserModel extends ShieldUserModel
 
         $this->allowedFields = [
             ...$this->allowedFields,
-            'avatar', // Stellt sicher, dass das Avatar-Feld gespeichert werden darf
+            'avatar',
+            'bio',
         ];
     }
 

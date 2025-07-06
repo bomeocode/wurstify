@@ -103,3 +103,29 @@ async function checkForNewRatings() {
 
 // Führe die Prüfung beim Laden jeder Seite aus
 checkForNewRatings();
+
+window.loadContentIntoModal = async function (url, title) {
+  const modalElement = document.getElementById("ajax-modal");
+  if (!modalElement) return;
+
+  const modalTitle = modalElement.querySelector(".modal-title");
+  const modalBody = modalElement.querySelector(".modal-body");
+  const bsModal = new bootstrap.Modal(modalElement);
+
+  modalTitle.textContent = "Lade...";
+  modalBody.innerHTML =
+    '<div class="text-center p-5"><div class="spinner-border"></div></div>';
+  if (!bsModal._isShown) bsModal.show();
+
+  try {
+    const response = await fetch(url, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    if (!response.ok) throw new Error("Inhalt konnte nicht geladen werden.");
+    modalBody.innerHTML = await response.text();
+    modalTitle.textContent =
+      modalBody.querySelector("h2,h1")?.textContent || title;
+  } catch (error) {
+    modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+  }
+};

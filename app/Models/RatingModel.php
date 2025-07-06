@@ -59,6 +59,7 @@ class RatingModel extends Model
     {
         return $this->select([
             'ratings.id',
+            'ratings.user_id',
             'ratings.comment',
             'ratings.created_at',
             'ratings.rating_appearance',

@@ -108,6 +108,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // === 2. ZENTRALE EVENT LISTENERS ===
   document.addEventListener("click", function (e) {
+    // NEU: Erkennt Klicks auf Benutzer-Links
+    const userTrigger = e.target.closest(".open-user-modal");
+    if (userTrigger) {
+      e.preventDefault();
+      // Wir verwenden unsere universelle Lade-Funktion
+      loadContentIntoModal(userTrigger.dataset.url, "Benutzerprofil");
+    }
+
     const detailButton = e.target.closest(".open-vendor-modal");
     if (detailButton) {
       e.preventDefault();
@@ -280,9 +288,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                             : "/assets/img/avatar-placeholder.png"
                                         }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
                                         <div>
-                                            <h6 class="card-title mb-0"><strong>${
-                                              rating.username || "Anonym"
-                                            }</strong></h6>
+                                            <h6 class="card-title mb-0"><a href="#" class="open-user-modal" data-url="/api/users/${
+                                              rating.user_id
+                                            }">
+                                                <strong>${
+                                                  rating.username || "Anonym"
+                                                }</strong>
+                                            </a></h6>
                                             <small class="text-muted">schrieb am ${new Date(
                                               rating.created_at
                                             ).toLocaleDateString(

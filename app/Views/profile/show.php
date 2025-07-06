@@ -47,6 +47,10 @@
         <label for="username" class="form-label">Benutzername</label>
         <input type="text" name="username" class="form-control" value="<?= old('username', $user->username) ?>">
       </div>
+      <div class="mb-3">
+        <label for="bio" class="form-label">Deine Kurzinfo / Motto</label>
+        <textarea name="bio" id="bio" class="form-control" rows="3" placeholder="Erzähle der Wurst-Community etwas über dich..."><?= esc(old('bio', $user->bio)) ?></textarea>
+      </div>
       <button type="submit" id="save-details-btn" class="btn btn-primary">Details speichern</button>
       <?= form_close() ?>
 
