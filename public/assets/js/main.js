@@ -70,3 +70,36 @@ document.addEventListener("click", function (e) {
     // da der Link ja seine normale Funktion (Navigation oder Modal öffnen) ausführen soll.
   }
 });
+
+// Funktion zum Prüfen auf neue Bewertungen
+async function checkForNewRatings() {
+  const feedBadge = document.getElementById("feed-badge");
+  const userIdMeta = document.querySelector('meta[name="user-id"]');
+
+  // Wir führen die Funktion nur aus, wenn ein Nutzer eingeloggt ist
+  if (!feedBadge || !userIdMeta) return;
+
+  const userId = userIdMeta.content;
+  const storageKey = `wurstify_feed_last_visit_${userId}`; // Benutzerspezifischer Schlüssel
+  const lastVisit = localStorage.getItem(storageKey);
+
+  // Wir fragen nur an, wenn der Nutzer den Feed schon mal besucht hat.
+  if (lastVisit) {
+    try {
+      const response = await fetch(`/api/feed/new-count?since=${lastVisit}`);
+      const data = await response.json();
+
+      if (data.new_count > 0) {
+        feedBadge.textContent = data.new_count > 9 ? "9+" : data.new_count;
+        feedBadge.style.display = "inline";
+      } else {
+        feedBadge.style.display = "none";
+      }
+    } catch (e) {
+      console.error("Fehler beim Prüfen auf neue Bewertungen:", e);
+    }
+  }
+}
+
+// Führe die Prüfung beim Laden jeder Seite aus
+checkForNewRatings();

@@ -12,7 +12,7 @@
       <a class="nav-link nav-feedback text-center text-white" href="<?= site_url('feed') ?>">
         <?php echo $currentController == 'Feed' ? '<i class="bi bi-postcard-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-postcard fs-4 d-block mx-auto mb-1"></i>';
         ?>
-        <small>Feed</small>
+        <small>Feed <span id="feed-badge" class="badge rounded-pill bg-danger" style="display: none;"></span></small>
       </a>
 
       <a class="nav-link nav-feedback text-center text-white open-modal-form" href="#" data-url="<?= site_url('feedback') ?>">

@@ -1,56 +1,66 @@
-import { showToast } from "./main.js"; // Annahme: Ihre Toast-Funktion wird von hier importiert
+import { showToast } from "./main.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Spezialist: feed.js geladen.");
+  const userIdMeta = document.querySelector('meta[name="user-id"]');
 
-  // === SETUP für diese Seite ===
+  if (userIdMeta) {
+    const userId = userIdMeta.content;
+    const storageKey = `wurstify_feed_last_visit_${userId}`; // Derselbe benutzerspezifische Schlüssel
+
+    // Verstecke das Badge
+    const feedBadge = document.getElementById("feed-badge");
+    if (feedBadge) feedBadge.style.display = "none";
+
+    // Setze den Zeitstempel für DIESEN Benutzer
+    localStorage.setItem(storageKey, new Date().toISOString());
+  }
+
   const feedList = document.getElementById("feed-list");
   const loadingIndicator = document.getElementById("loading-indicator");
   const trigger = document.getElementById("load-more-trigger");
+  if (!feedList) return; // Wenn wir nicht auf der Feed-Seite sind, nichts tun.
 
-  // SETUP für das Modal
+  // === SETUP FÜR DAS MODAL (wird jetzt für alle Aktionen gebraucht) ===
   const modalElement = document.getElementById("ajax-modal");
   if (!modalElement) return;
   const modalTitle = modalElement.querySelector(".modal-title");
   const modalBody = modalElement.querySelector(".modal-body");
   const bsModal = new bootstrap.Modal(modalElement);
 
-  // HIER IST DIE KORREKTUR: Fehlende Variablen-Deklarationen
   let nextPage = 1;
   let isLoading = false;
   let lightbox;
 
-  // === EVENT LISTENERS ===
+  // === EVENT LISTENER (Jetzt für alle Modal-Trigger auf dieser Seite) ===
   document.addEventListener("click", async function (e) {
-    if (e.target.classList.contains("open-single-rating-modal")) {
-      e.preventDefault();
-      const url = e.target.dataset.url;
-      modalTitle.textContent = "Lade Bewertung...";
-      modalBody.innerHTML =
-        '<div class="text-center p-5"><div class="spinner-border"></div></div>';
-      bsModal.show();
-      try {
-        const response = await fetch(url, {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        });
-        if (!response.ok)
-          throw new Error("Inhalt konnte nicht geladen werden.");
-        const html = await response.text();
-        modalBody.innerHTML = html;
-        modalTitle.textContent =
-          modalBody.querySelector("h1")?.textContent || "Bewertung";
-        initOrReloadLightbox();
-      } catch (error) {
-        modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-      }
-    }
-    // Listener für den globalen Feedback-Button (falls vorhanden)
-    const feedbackTrigger = e.target.closest(
-      '.open-modal-form[data-url*="feedback"]'
+    // Fängt Klicks für "Weiterlesen", "Bewerten" und "Feedback" ab
+    const triggerButton = e.target.closest(
+      ".open-single-rating-modal, .open-modal-form"
     );
-    if (feedbackTrigger) {
+
+    if (triggerButton) {
       e.preventDefault();
-      loadGenericFormtoModal(feedbackTrigger.dataset.url, "Feedback geben");
+      const url = triggerButton.dataset.url;
+      const isRatingForm = triggerButton.classList.contains("open-modal-form");
+      const isRatingDetail = triggerButton.classList.contains(
+        "open-single-rating-modal"
+      );
+
+      // Titel bestimmen
+      let title = "Information";
+      if (isRatingForm) title = "Bratwurst bewerten";
+      if (isRatingDetail) title = "Bewertung im Detail";
+      if (url.includes("feedback")) title = "Feedback geben";
+
+      // Modal laden und bei Bedarf die passenden Skripte initialisieren
+      await loadFormIntoModal(url, title, (container) => {
+        if (isRatingDetail) {
+          initOrReloadLightbox();
+        }
+        if (isRatingForm && url.includes("/ratings/new")) {
+          initializeRatingFormScripts(container, showToast);
+        }
+      });
     }
   });
 
@@ -94,21 +104,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // === FUNKTIONEN (vollständig) ===
+
+  // In public/js/feed.js
+  async function loadFormIntoModal(url, title) {
+    modalTitle.textContent = "Lade...";
+    modalBody.innerHTML =
+      '<div class="text-center p-5"><div class="spinner-border"></div></div>';
+    if (!bsModal._isShown) bsModal.show();
+
+    try {
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      if (!response.ok)
+        throw new Error(`Server antwortete mit Status ${response.status}`);
+
+      const html = await response.text();
+      modalBody.innerHTML = html;
+      modalTitle.textContent = title;
+
+      // +++ HIER IST DIE MAGIE: DYNAMISCHER IMPORT +++
+      // Wir importieren das Handler-Modul erst dann, wenn wir es wirklich brauchen.
+      if (url.includes("/ratings/new")) {
+        const handlerModule = await import("./rating-form-handler.js");
+        // Wir rufen die exportierte Funktion aus dem geladenen Modul auf.
+        handlerModule.initializeRatingFormScripts(modalBody, showToast);
+      }
+    } catch (error) {
+      modalBody.innerHTML = `<div class="alert alert-danger">Inhalt konnte nicht geladen werden: ${error.message}</div>`;
+    }
+  }
+
   // === FUNKTIONEN ===
   function renderStars(score) {
     if (!score || score <= 0)
       return '<small class="text-muted">Nicht bewertet</small>';
     const s = Math.round(score);
     return "★".repeat(s) + "☆".repeat(5 - s);
-  }
-
-  function initOrReloadLightbox() {
-    if (typeof GLightbox !== "function") return;
-    if (lightbox) {
-      lightbox.reload();
-    } else {
-      lightbox = GLightbox({ selector: ".glightbox" });
-    }
   }
 
   async function loadFeedItems() {
@@ -143,37 +176,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
           card.innerHTML = `
                     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                           <h5 class="mb-0">${rating.vendor_name} 
-                                  ${
-                                    rating.vendor_category === "mobil"
-                                      ? '<span class="badge bg-warning text-dark ms-2">Mobil</span>'
-                                      : ""
-                                  }
-                            </h5>
-                           <small class="text-muted">${
-                             rating.vendor_address || ""
-                           }</small>
-                        </div>
-                        <div class="text-center ps-3">
-                            <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
-                              1
-                            )}</h2>
-                            <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
-                              avg
-                            )}</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        ${
-                          comment
-                            ? `<p class="card-text fst-italic">"${shortComment}"</p>${
-                                needsReadMore
-                                  ? `<button class="btn btn-link p-0 mb-3 open-single-rating-modal" data-url="/api/ratings/${rating.id}">Weiterlesen</button>`
-                                  : ""
-                              }`
-                            : ""
-                        }
+        <div>
+           <h5 class="mb-0">${rating.vendor_name} 
+                ${
+                  rating.vendor_category === "mobil"
+                    ? '<span class="badge bg-warning text-dark ms-2">Mobil</span>'
+                    : ""
+                }
+           </h5>
+           <small class="text-muted">${rating.vendor_address || ""}</small>
+        </div>
+        <div class="text-center ps-3">
+            <h2 class="display-6 fw-bold mb-0">${avg.toFixed(1)}</h2>
+            <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
+              avg
+            )}</div>
+        </div>
+    </div>
+    <div class="card-body">
+        ${
+          comment
+            ? `<p class="card-text fst-italic">"${shortComment}"</p>${
+                needsReadMore
+                  ? `<button class="btn btn-link p-0 mb-3 open-single-rating-modal" data-url="/api/ratings/${rating.id}">Weiterlesen</button>`
+                  : ""
+              }`
+            : ""
+        }
+        
+        
                         
                         <div>
                             <div class="d-flex justify-content-between"><small>Aussehen:</small> <span class="text-warning">${renderStars(
@@ -219,23 +250,32 @@ document.addEventListener("DOMContentLoaded", function () {
                             : ""
                         }
                     </div>
-                    <div class="card-footer text-muted d-flex justify-content-end align-items-center small py-2">
-                       <div class="me-2 text-end">
-                          Bewertet von <strong>${
-                            rating.username || "Anonym"
-                          }</strong><br>
-                          <span style="font-size: 0.8em;">am ${new Date(
-                            rating.created_at
-                          ).toLocaleDateString("de-DE")}</span>
-                       </div>
-                       <img src="${
-                         rating.avatar
-                           ? "/uploads/avatars/" + rating.avatar
-                           : "/assets/img/avatar-placeholder.png"
-                       }" 
-                            alt="Avatar von ${rating.username || "Anonym"}" 
-                            class="avatar-image-sm rounded-circle">
-                    </div>
+                    <div class="card-footer text-muted d-flex justify-content-between align-items-center small py-2">
+        <button type="button" class="btn btn-sm btn-success open-modal-form" data-url="/ratings/new?vendor_uuid=${
+          rating.uuid
+        }">
+            Diesen Anbieter bewerten
+        </button>
+        <div class="ms-2 text-end">
+           <div class="d-flex align-items-center">
+                <div class="me-2">
+                    Bewertet von <strong>${
+                      rating.username || "Anonym"
+                    }</strong><br>
+                    <span style="font-size: 0.8em;">am ${new Date(
+                      rating.created_at
+                    ).toLocaleDateString("de-DE")}</span>
+                </div>
+                <img src="${
+                  rating.avatar
+                    ? "/uploads/avatars/" + rating.avatar
+                    : "/assets/img/avatar-placeholder.png"
+                }" 
+                     alt="Avatar von ${rating.username || "Anonym"}" 
+                     class="avatar-image-sm rounded-circle">
+           </div>
+        </div>
+    </div>
                 `;
           feedList.appendChild(card);
         });
@@ -275,31 +315,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  async function loadGenericFormtoModal(url, title) {
-    modalTitle.textContent = "Lade...";
-    modalBody.innerHTML =
-      '<div class="text-center p-5"><div class="spinner-border"></div></div>';
-    if (!bsModal._isShown) bsModal.show();
-    try {
-      const response = await fetch(url, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-      });
-      if (!response.ok)
-        throw new Error("Formular konnte nicht geladen werden.");
-      modalBody.innerHTML = await response.text();
-      modalTitle.textContent = title;
-    } catch (error) {
-      modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-    }
-  }
-
-  // Intersection Observer und initialer Aufruf
+  // Initialer Aufruf für Lazy Loading
   const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && !isLoading) {
       loadFeedItems();
     }
   });
-
   if (trigger) {
     observer.observe(trigger);
     loadFeedItems();

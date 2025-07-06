@@ -69,6 +69,7 @@ class RatingModel extends Model
             'ratings.image1',
             'ratings.image2',
             'ratings.image3',
+            'vendors.uuid',
             'vendors.name as vendor_name',
             'vendors.address as vendor_address',
             'vendors.category as vendor_category',

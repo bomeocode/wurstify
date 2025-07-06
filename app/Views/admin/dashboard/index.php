@@ -43,5 +43,18 @@
 
   </div>
 
+  <div class="card mt-1">
+    <div class="card-header">
+      System-Werkzeuge
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">Bilder aufräumen</h5>
+      <p class="card-text">Sucht nach hochgeladenen Bildern, die keiner Bewertung mehr zugeordnet sind, und löscht diesen Datenmüll.</p>
+      <a href="<?= route_to('admin_cleanup_images') ?>" class="btn btn-warning" onclick="return confirm('Sind Sie sicher, dass Sie alle ungenutzten Bilder löschen möchten?')">
+        Verwaiste Bilder jetzt löschen
+      </a>
+    </div>
+  </div>
+
 </div>
 <?= $this->endSection() ?>

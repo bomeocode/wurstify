@@ -9,7 +9,7 @@ $routes->get('/', 'Dashboard::index');
 $routes->get('/dashboard', 'Dashboard::index');
 $routes->get('/ratings', 'Ratings::new');
 $routes->get('/ratings/new', 'Ratings::new');
-$routes->post('ratings/create', 'Ratings::create');
+$routes->post('ratings/create', 'Ratings::create', ['as' => 'rating_create']);
 $routes->get('/feed', 'Feed::index');
 $routes->get('/merch', 'Merch::index');
 $routes->get('/settings', 'Settings::index');
@@ -34,15 +34,14 @@ $routes->group('profile', ['filter' => 'session'], static function ($routes) {
 });
 
 $routes->group('api', ['filter' => 'session'], static function ($routes) {
-  // Bestehende Routen...
   $routes->post('avatar-upload', 'Api\AvatarUpload::upload');
   $routes->post('rating-image-upload', 'Api\RatingImageUpload::upload');
   $routes->post('rating-image-delete', 'Api\RatingImageUpload::delete');
   $routes->get('vendor-search', 'Api\VendorSearch::index');
-  // NEUE ROUTEN:
   $routes->get('feed/ratings', 'Api\FeedController::index');
   $routes->get('ratings/(:num)', 'Api\RatingController::show/$1');
   $routes->get('vendors/(:segment)/ratings', 'Api\VendorController::ratings/$1');
+  $routes->get('feed/new-count', 'Api\FeedController::newCount');
 });
 
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
@@ -62,4 +61,6 @@ $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('ratings/edit/(:num)', 'Admin\RatingController::edit/$1');
   $routes->post('ratings/update/(:num)', 'Admin\RatingController::update/$1');
   $routes->get('ratings/delete/(:num)', 'Admin\RatingController::delete/$1');
+
+  $routes->get('tools/cleanup_images', 'Admin\ToolsController::cleanupImages', ['as' => 'admin_cleanup_images']);
 });

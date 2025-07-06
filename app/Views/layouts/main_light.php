@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
   <title><?= $this->renderSection('title') ?></title>
+  <?php if (auth()->loggedIn()): ?>
+    <meta name="user-id" content="<?= auth()->id() ?>">
+  <?php endif; ?>
   <link rel="icon" type="image/png" sizes="32x32" href="https://app.wurstify.com/assets/icons/icon-192x192.png">
   <meta name="X-CSRF-TOKEN-NAME" content="<?= csrf_header() ?>">
   <meta name="X-CSRF-TOKEN-VALUE" content="<?= csrf_hash() ?>">

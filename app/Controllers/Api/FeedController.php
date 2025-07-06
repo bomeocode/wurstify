@@ -40,4 +40,22 @@ class FeedController extends ResourceController
 
         return $this->respond($data);
     }
+
+    public function newCount()
+    {
+        // Wir erwarten einen Zeitstempel als GET-Parameter, z.B. ?since=2025-07-06T10:00:00Z
+        $since = $this->request->getGet('since');
+
+        // Wenn kein Zeitstempel mitgeschickt wird, gibt es keine neuen Bewertungen.
+        if (!$since) {
+            return $this->respond(['new_count' => 0]);
+        }
+
+        $ratingModel = new \App\Models\RatingModel();
+
+        // Zähle alle Bewertungen, die neuer sind als der übergebene Zeitstempel
+        $count = $ratingModel->where('created_at >', $since)->countAllResults();
+
+        return $this->respond(['new_count' => $count]);
+    }
 }
