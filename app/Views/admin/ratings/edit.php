@@ -1,7 +1,5 @@
-<?= $this->extend('layouts/main_light') ?>
-<?= $this->section('title') ?>Bewertung bearbeiten<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
+<?= $this->extend('layouts/admin_layout') ?>
+<?= $this->section('main') ?>
 <div class="container mt-4">
   <h1 class="h3 mb-4">Bewertung #<?= $rating['id'] ?> bearbeiten</h1>
 

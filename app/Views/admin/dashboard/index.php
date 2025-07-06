@@ -1,8 +1,5 @@
-<?= $this->extend('layouts/main_light') ?>
-
-<?= $this->section('title') ?>Admin Dashboard<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
+<?= $this->extend('layouts/admin_layout') ?>
+<?= $this->section('main') ?>
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">Admin Dashboard</h1>
