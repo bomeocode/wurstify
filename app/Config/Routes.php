@@ -43,6 +43,8 @@ $routes->group('api', ['filter' => 'session'], static function ($routes) {
   $routes->get('vendors/(:segment)/ratings', 'Api\VendorController::ratings/$1');
   $routes->get('feed/new-count', 'Api\FeedController::newCount');
   $routes->get('users/(:num)', 'Api\UserController::show/$1');
+  $routes->post('ratings/(:num)/vote', 'Api\RatingController::toggleVote/$1');
+  $routes->get('vendors/details/(:segment)', 'Api\VendorController::show/$1');
 });
 
 $routes->group('admin', ['filter' => 'admin'], static function ($routes) {

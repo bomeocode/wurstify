@@ -11,7 +11,9 @@ $level = $user->getLevel();
   <h2 class="h4"><?= esc($user->username) ?></h2>
 
   <?php if ($level): ?>
-    <p><span class="badge bg-primary"><?= esc($level->name) ?></span></p>
+    <p class="mb-1"><span class="badge bg-primary"><?= esc($level->name) ?></span></p>
+
+    <p class="text-muted small">Hat insgesamt <?= $ratingCount ?> Bewertungen abgegeben.</p>
   <?php endif; ?>
 
   <?php if (!empty($user->bio)): ?>

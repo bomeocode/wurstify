@@ -107,7 +107,52 @@ document.addEventListener("DOMContentLoaded", function () {
   map.addLayer(markers);
 
   // === 2. ZENTRALE EVENT LISTENERS ===
-  document.addEventListener("click", function (e) {
+  document.addEventListener("click", async function (e) {
+    // +++ NEUE LOGIK FÜR DEN VOTE-BUTTON +++
+    const voteButton = e.target.closest(".vote-button");
+    if (voteButton) {
+      e.preventDefault();
+
+      // Button sofort sperren, um Doppelklicks zu verhindern
+      voteButton.disabled = true;
+
+      const ratingId = voteButton.dataset.ratingId;
+      const countSpan = voteButton.querySelector(".badge");
+
+      try {
+        const csrfToken = document.querySelector(
+          'meta[name="X-CSRF-TOKEN-VALUE"]'
+        )?.content;
+        if (!csrfToken) throw new Error("CSRF Token nicht gefunden.");
+
+        const response = await fetch(`/api/ratings/${ratingId}/vote`, {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-TOKEN": csrfToken,
+          },
+        });
+        const result = await response.json();
+        if (!response.ok) throw result;
+
+        // UI mit der Server-Antwort aktualisieren
+        if (countSpan) countSpan.textContent = result.new_count;
+        if (result.voted) {
+          voteButton.classList.remove("btn-outline-success");
+          voteButton.classList.add("btn-success");
+        } else {
+          voteButton.classList.remove("btn-success");
+          voteButton.classList.add("btn-outline-success");
+        }
+      } catch (error) {
+        // Ihre Toast-Funktion verwenden, falls vorhanden
+        console.error("Fehler beim Abstimmen:", error);
+        // displayToast(error.message || 'Abstimmung fehlgeschlagen', 'danger');
+      } finally {
+        voteButton.disabled = false;
+      }
+    }
+
     // NEU: Erkennt Klicks auf Benutzer-Links
     const userTrigger = e.target.closest(".open-user-modal");
     if (userTrigger) {
@@ -354,7 +399,30 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div></div>`
                                 : ""
                             }
-                        </div>`;
+                        </div>
+                        <div class="card-footer text-muted d-flex justify-content-between align-items-center small py-2">
+        <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
+          rating.id
+        }">
+            <i class="bi bi-hand-thumbs-up"></i> Hilfreich
+            <span class="badge bg-success ms-1">${
+              rating.helpful_count || 0
+            }</span>
+        </button>
+        <div class="ms-2 text-end">
+           <div class="d-flex align-items-center">
+                <div class="me-2">
+                    Bewertet von <strong>${rating.username || "Anonym"}</strong>
+                </div>
+                <img src="${
+                  rating.avatar
+                    ? "/uploads/avatars/" + rating.avatar
+                    : "/assets/img/avatar-placeholder.png"
+                }" 
+                     alt="Avatar" class="avatar-image-sm rounded-circle">
+           </div>
+        </div>
+    </div>`;
             ratingsList.appendChild(el);
           });
 

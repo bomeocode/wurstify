@@ -71,22 +71,38 @@ class VendorModel extends Model
     /**
      * Holt alle Anbieter mit deren Durchschnittsbewertungen für die Kartenanzeige.
      */
-    public function getVendorsWithAverageRatings()
+    // In app/Models/VendorModel.php
+
+    // In app/Models/VendorModel.php
+
+    // In app/Models/VendorModel.php
+
+    public function getVendorsWithAverageRatings(?string $uuid = null)
     {
-        return $this->select('
-                vendors.uuid, vendors.name as vendor_name, vendors.latitude, vendors.longitude,vendors.category,
-                AVG(ratings.rating_taste) as avg_taste,
-                AVG(ratings.rating_appearance) as avg_appearance,
-                AVG(ratings.rating_presentation) as avg_presentation,
-                AVG(ratings.rating_price) as avg_price,
-                AVG(ratings.rating_service) as avg_service,
-                COUNT(ratings.id) as total_ratings
-            ')
+        // Wir ersetzen 'vendors.*' durch eine explizite Liste, um Konsistenz zu schaffen
+        $builder = $this->select('
+            vendors.id,
+            vendors.uuid,
+            vendors.name as vendor_name,
+            vendors.address,
+            vendors.latitude,
+            vendors.longitude,
+            vendors.category,
+            AVG(ratings.rating_taste) as avg_taste,
+            AVG(ratings.rating_appearance) as avg_appearance,
+            AVG(ratings.rating_presentation) as avg_presentation,
+            AVG(ratings.rating_price) as avg_price,
+            AVG(ratings.rating_service) as avg_service,
+            COUNT(ratings.id) as total_ratings
+        ')
             ->join('ratings', 'ratings.vendor_id = vendors.id', 'left')
-            ->where('vendors.latitude IS NOT NULL')
-            ->where('vendors.longitude IS NOT NULL')
-            ->groupBy('vendors.id')
-            ->findAll();
+            ->groupBy('vendors.id');
+
+        if ($uuid !== null) {
+            $builder->where('vendors.uuid', $uuid);
+        }
+
+        return $builder->findAll();
     }
 
     /**

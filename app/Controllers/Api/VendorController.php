@@ -62,4 +62,26 @@ class VendorController extends ResourceController
         $data = ['ratings' => $ratings, 'pager'   => $pager_data,];
         return $this->respond($data);
     }
+
+    // In app/Controllers/Api/VendorController.php
+
+    /**
+     * Liefert die HTML-Ansicht für die Details eines einzelnen Anbieters.
+     */
+    public function show($uuid = null)
+    {
+        $vendorModel = new \App\Models\VendorModel();
+
+        // Wir holen den Anbieter und seine durchschnittlichen Bewertungen
+        $vendor = $vendorModel->getVendorsWithAverageRatings($uuid);
+
+        if (empty($vendor)) {
+            return $this->failNotFound('Anbieter nicht gefunden.');
+        }
+
+        $data = ['vendor' => $vendor[0]]; // getVendorsWith... gibt ein Array zurück
+
+        // Wir geben die "Content-Only"-View für unser Modal zurück
+        return view('vendor/show_content_only', $data);
+    }
 }

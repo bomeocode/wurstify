@@ -30,6 +30,7 @@ class RatingModel extends Model
         'image1',
         'image2',
         'image3',
+        'helpful_count',
     ];
 
     /**
@@ -62,6 +63,7 @@ class RatingModel extends Model
             'ratings.user_id',
             'ratings.comment',
             'ratings.created_at',
+            'ratings.helpful_count',
             'ratings.rating_appearance',
             'ratings.rating_taste',
             'ratings.rating_presentation',
@@ -71,6 +73,7 @@ class RatingModel extends Model
             'ratings.image2',
             'ratings.image3',
             'vendors.uuid',
+            'vendors.uuid as vendor_uuid',
             'vendors.name as vendor_name',
             'vendors.address as vendor_address',
             'vendors.category as vendor_category',

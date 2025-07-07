@@ -9,15 +9,23 @@ class UserController extends ResourceController
 {
     public function show($id = null)
     {
-        $users = new UserModel();
+        $userModel = new UserModel();
         // Wir verwenden unsere erweiterte User-Entität!
-        $user = $users->find($id);
+        $user = $userModel->find($id);
 
         if (empty($user)) {
             return $this->failNotFound('Benutzer nicht gefunden.');
         }
 
-        // Wir übergeben das User-Objekt an die View
-        return view('users/card_content', ['user' => $user]);
+        $ratingModel = new \App\Models\RatingModel();
+        $ratingCount = $ratingModel->where('user_id', $id)->countAllResults();
+
+        // Wir übergeben sowohl den Benutzer als auch die Anzahl seiner Ratings an die View
+        $data = [
+            'user'        => $user,
+            'ratingCount' => $ratingCount,
+        ];
+
+        return view('users/card_content', $data);
     }
 }
