@@ -276,13 +276,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // In public/js/dashboard.js
 
+  // In public/js/dashboard.js
+
   function initializeLazyLoading(container, vendorUuid) {
     const ratingsList = container.querySelector("#ratings-list");
     const loadingIndicator = container.querySelector("#loading-indicator");
     const trigger = container.querySelector("#load-more-trigger");
     if (!ratingsList || !loadingIndicator || !trigger) return;
 
-    let nextPage = 1,
+    let modalNextPage = 1,
       isLoading = false,
       lightbox;
     if (lazyLoadObserver) lazyLoadObserver.disconnect();
@@ -295,16 +297,14 @@ document.addEventListener("DOMContentLoaded", function () {
       return "★".repeat(s) + "☆".repeat(5 - s);
     }
 
-    async function loadRatings() {
-      if (isLoading || !nextPage) return;
+    async function loadModalRatings() {
+      if (isLoading || !modalNextPage) return;
       isLoading = true;
-      loadingIndicator.innerHTML =
-        '<div class="spinner-border" role="status"></div>';
       loadingIndicator.style.display = "block";
 
       try {
         const response = await fetch(
-          `/api/vendors/${vendorUuid}/ratings?page=${nextPage}`
+          `/api/vendors/${vendorUuid}/ratings?page=${modalNextPage}`
         );
         const data = await response.json();
 
@@ -320,130 +320,108 @@ document.addEventListener("DOMContentLoaded", function () {
                 parseFloat(rating.rating_service)) /
               5;
 
-            // HIER IST DIE WIEDERHERGESTELLTE, DETAILLIERTE ANSICHT
+            // +++ HIER IST DIE NEUE, AUFGERÄUMTE STRUKTUR +++
             el.innerHTML = `
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <img src="${
-                                          rating.avatar
-                                            ? "/uploads/avatars/" +
-                                              rating.avatar
-                                            : "/assets/img/avatar-placeholder.png"
-                                        }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
-                                        <div>
-                                            <h6 class="card-title mb-0"><a href="#" class="open-user-modal" data-url="/api/users/${
-                                              rating.user_id
-                                            }">
-                                                <strong>${
-                                                  rating.username || "Anonym"
-                                                }</strong>
-                                            </a></h6>
-                                            <small class="text-muted">schrieb am ${new Date(
-                                              rating.created_at
-                                            ).toLocaleDateString(
-                                              "de-DE"
-                                            )}</small>
-                                        </div>
-                                    </div>
-                                    <p class="card-text fst-italic">"${
-                                      rating.comment || "Kein Kommentar"
-                                    }"</p>
-                                </div>
-                                <div class="text-center ps-3">
-                                    <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
-                                      1
-                                    )}</h2>
-                                    <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
-                                      avg
-                                    )}</div>
-                                </div>
-                            </div>
-                            <hr class="my-2">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4 text-center d-flex flex-column justify-content-center align-items-center p-2 bg-light rounded">
+                        <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
+                          1
+                        )}</h2>
+                        <div class="text-warning">${renderStars(avg)}</div>
+                        <small class="text-muted">Gesamt</small>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <a href="#" class="open-user-modal" data-url="/api/users/${
+                              rating.user_id
+                            }">
+                                <img src="${
+                                  rating.avatar
+                                    ? "/uploads/avatars/" + rating.avatar
+                                    : "/assets/img/avatar-placeholder.png"
+                                }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
+                            </a>
                             <div>
-                                <div class="d-flex justify-content-between"><small>Aussehen:</small> <span class="text-warning">${renderStars(
-                                  rating.rating_appearance
-                                )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Geschmack:</small> <span class="text-warning">${renderStars(
-                                  rating.rating_taste
-                                )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Präsentation:</small> <span class="text-warning">${renderStars(
-                                  rating.rating_presentation
-                                )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
-                                  rating.rating_price
-                                )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
-                                  rating.rating_service
-                                )}</span></div>
+                                <a href="#" class="open-user-modal text-dark text-decoration-none" data-url="/api/users/${
+                                  rating.user_id
+                                }">
+                                    <strong class="d-block">${
+                                      rating.username || "Anonym"
+                                    }</strong>
+                                </a>
+                                <small class="text-muted">hat am ${new Date(
+                                  rating.created_at
+                                ).toLocaleDateString("de-DE")} bewertet:</small>
                             </div>
-                            ${
-                              rating.image1 || rating.image2 || rating.image3
-                                ? `<div class="rating-images mt-3"><div class="row g-2">
-                                ${
-                                  rating.image1
-                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image1}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image1}" class="img-fluid rounded" alt="Bild 1"></a></div>`
-                                    : ""
-                                }
-                                ${
-                                  rating.image2
-                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image2}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image2}" class="img-fluid rounded" alt="Bild 2"></a></div>`
-                                    : ""
-                                }
-                                ${
-                                  rating.image3
-                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image3}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image3}" class="img-fluid rounded" alt="Bild 3"></a></div>`
-                                    : ""
-                                }
-                            </div></div>`
-                                : ""
-                            }
                         </div>
-                        <div class="card-footer text-muted d-flex justify-content-between align-items-center small py-2">
-        <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
-          rating.id
-        }">
-            <i class="bi bi-hand-thumbs-up"></i> Hilfreich
-            <span class="badge bg-success ms-1">${
-              rating.helpful_count || 0
-            }</span>
-        </button>
-        <div class="ms-2 text-end">
-           <div class="d-flex align-items-center">
-                <div class="me-2">
-                    Bewertet von <strong>${rating.username || "Anonym"}</strong>
+                        <p class="card-text fst-italic mb-0">"${
+                          rating.comment || "Kein Kommentar"
+                        }"</p>
+                    </div>
                 </div>
-                <img src="${
-                  rating.avatar
-                    ? "/uploads/avatars/" + rating.avatar
-                    : "/assets/img/avatar-placeholder.png"
-                }" 
-                     alt="Avatar" class="avatar-image-sm rounded-circle">
-           </div>
-        </div>
-    </div>`;
+                <hr class="my-2">
+                <div>
+                    <div class="d-flex justify-content-between small"><small>Aussehen:</small> <span class="text-warning">${renderStars(
+                      rating.rating_appearance
+                    )}</span></div>
+                    <div class="d-flex justify-content-between small"><small>Geschmack:</small> <span class="text-warning">${renderStars(
+                      rating.rating_taste
+                    )}</span></div>
+                    <div class="d-flex justify-content-between small"><small>Präsentation:</small> <span class="text-warning">${renderStars(
+                      rating.rating_presentation
+                    )}</span></div>
+                    <div class="d-flex justify-content-between small"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
+                      rating.rating_price
+                    )}</span></div>
+                    <div class="d-flex justify-content-between small"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
+                      rating.rating_service
+                    )}</span></div>
+                </div>
+            </div>
+            <div class="card-footer text-muted d-flex justify-content-start align-items-center small py-2">
+                <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
+                  rating.id
+                }">
+                    <i class="bi bi-hand-thumbs-up"></i> Hilfreich
+                    <span class="badge bg-success ms-1">${
+                      rating.helpful_count || 0
+                    }</span>
+                </button>
+            </div>
+        `;
             ratingsList.appendChild(el);
           });
 
           if (typeof GLightbox === "function") {
-            if (lightbox) lightbox.reload();
-            else {
-              lightbox = GLightbox({ selector: ".glightbox" });
+            // Zerstöre die alte Instanz, falls vorhanden
+            if (lightbox) {
+              lightbox.destroy();
             }
+            // Erstelle immer eine neue Instanz mit der 'onclose'-Option
+            lightbox = GLightbox({
+              selector: ".glightbox",
+              touchNavigation: true,
+              loop: false,
+              onclose: () => {
+                // Zerstöre die Lightbox, wenn sie geschlossen wird.
+                lightbox.destroy();
+                lightbox = null;
+              },
+            });
           }
-          nextPage =
+          modalNextPage =
             data.pager.currentPage < data.pager.pageCount
               ? data.pager.currentPage + 1
               : null;
         } else {
-          nextPage = null;
+          modalNextPage = null;
         }
       } catch (e) {
-        console.error(e);
+        console.error("Fehler beim Laden der Modal-Bewertungen:", e);
       } finally {
         isLoading = false;
-        if (!nextPage) {
+        if (!modalNextPage) {
           loadingIndicator.innerHTML =
             ratingsList.children.length === 0
               ? '<p class="text-muted text-center my-4">Für diesen Anbieter gibt es noch keine Bewertungen.</p>'
@@ -454,16 +432,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    lazyLoadObserver = new IntersectionObserver(
+    const modalObserver = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !isLoading) {
-          loadRatings();
+          loadModalRatings();
         }
       },
-      { root: modalElement, threshold: 0.1 }
+      { root: modalElement }
     );
+
     if (trigger) {
-      lazyLoadObserver.observe(trigger);
+      modalObserver.observe(trigger);
+      loadModalRatings();
     }
   }
 });

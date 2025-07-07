@@ -59,6 +59,7 @@ $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('vendors/edit/(:num)', 'Admin\VendorController::edit/$1');
   $routes->post('vendors/update/(:num)', 'Admin\VendorController::update/$1');
   $routes->get('vendors/delete/(:num)', 'Admin\VendorController::delete/$1');
+  $routes->post('vendors/upload-image', 'Admin\VendorController::ajaxImageUpload', ['as' => 'admin_vendor_image_upload']);
 
   $routes->get('ratings', 'Admin\RatingController::index');
   $routes->get('ratings/edit/(:num)', 'Admin\RatingController::edit/$1');

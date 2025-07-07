@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let nextPage = 1;
   let isLoading = false;
   let lightbox;
+  let lazyLoadObserver;
 
   // === EVENT LISTENER (Jetzt für alle Modal-Trigger auf dieser Seite) ===
   document.addEventListener("click", async function (e) {
@@ -172,63 +173,131 @@ document.addEventListener("DOMContentLoaded", function () {
    * Initialisiert das "unendliche Scrollen" für Bewertungen innerhalb des Modals.
    */
   function initializeLazyLoading(container, vendorUuid) {
-    const ratingsList = container.querySelector("#modal-ratings-list");
-    const loadingIndicator = container.querySelector(
-      "#modal-loading-indicator"
-    );
-    const loadMoreTrigger = container.querySelector("#modal-load-more-trigger");
-    if (!ratingsList || !loadingIndicator || !loadMoreTrigger) return;
+    const ratingsList = container.querySelector("#ratings-list");
+    const loadingIndicator = container.querySelector("#loading-indicator");
+    const trigger = container.querySelector("#load-more-trigger");
+    if (!ratingsList || !loadingIndicator || !trigger) return;
 
-    let nextPage = 1;
-    let isLoading = false;
+    let modalNextPage = 1,
+      isLoading = false,
+      lightbox;
+    if (lazyLoadObserver) lazyLoadObserver.disconnect();
+    ratingsList.innerHTML = "";
 
-    async function loadRatings() {
-      if (isLoading || !nextPage) return;
+    function renderStars(score) {
+      if (!score || score <= 0)
+        return '<small class="text-muted">Nicht bewertet</small>';
+      const s = Math.round(score);
+      return "★".repeat(s) + "☆".repeat(5 - s);
+    }
+
+    async function loadModalRatings() {
+      if (isLoading || !modalNextPage) return;
       isLoading = true;
       loadingIndicator.style.display = "block";
 
       try {
         const response = await fetch(
-          `/api/vendors/${vendorUuid}/ratings?page=${nextPage}`
+          `/api/vendors/${vendorUuid}/ratings?page=${modalNextPage}`
         );
         const data = await response.json();
+
         if (data.ratings && data.ratings.length > 0) {
           data.ratings.forEach((rating) => {
             const el = document.createElement("div");
             el.className = "card mb-3";
-            // Hier die HTML-Struktur für eine einzelne Bewertungs-Karte im Modal einfügen
-            // (Sie können diese aus Ihrer dashboard.js kopieren)
-            el.innerHTML = `... HTML für eine Bewertungs-Karte ...`;
+
+            // +++ HIER IST DIE FEHLENDE ZEILE +++
+            const avg =
+              (parseFloat(rating.rating_taste) +
+                parseFloat(rating.rating_appearance) +
+                parseFloat(rating.rating_presentation) +
+                parseFloat(rating.rating_price) +
+                parseFloat(rating.rating_service)) /
+              5;
+
+            // Der Rest des innerHTML kann nun auf 'avg' zugreifen
+            el.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="${
+                                          rating.avatar
+                                            ? "/uploads/avatars/" +
+                                              rating.avatar
+                                            : "/assets/img/avatar-placeholder.png"
+                                        }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
+                                        <div>
+                                            <h6 class="card-title mb-0"><strong>${
+                                              rating.username || "Anonym"
+                                            }</strong></h6>
+                                            <small class="text-muted">schrieb am ${new Date(
+                                              rating.created_at
+                                            ).toLocaleDateString(
+                                              "de-DE"
+                                            )}</small>
+                                        </div>
+                                    </div>
+                                    <p class="card-text fst-italic">"${
+                                      rating.comment || "Kein Kommentar"
+                                    }"</p>
+                                </div>
+                                <div class="text-center ps-3">
+                                    <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
+                                      1
+                                    )}</h2>
+                                    <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
+                                      avg
+                                    )}</div>
+                                </div>
+                            </div>
+                            </div>`;
             ratingsList.appendChild(el);
           });
-          nextPage = data.pager.next_page_url ? nextPage + 1 : null;
+
+          if (typeof GLightbox === "function") {
+            if (lightbox) lightbox.reload();
+            else {
+              lightbox = GLightbox({ selector: ".glightbox" });
+            }
+          }
+          modalNextPage =
+            data.pager.currentPage < data.pager.pageCount
+              ? data.pager.currentPage + 1
+              : null;
         } else {
-          nextPage = null;
+          modalNextPage = null;
         }
-      } catch (error) {
-        console.error("Fehler beim Laden der Bewertungen:", error);
+      } catch (e) {
+        console.error("Fehler beim Laden der Modal-Bewertungen:", e);
       } finally {
         isLoading = false;
-        loadingIndicator.style.display = "none";
-        if (!nextPage) {
-          loadMoreTrigger.innerHTML =
-            '<p class="text-muted text-center small">Ende der Bewertungen erreicht.</p>';
+        if (!modalNextPage) {
+          loadingIndicator.innerHTML =
+            ratingsList.children.length === 0
+              ? '<p class="text-muted text-center my-4">Für diesen Anbieter gibt es noch keine Bewertungen.</p>'
+              : '<p class="text-muted text-center my-4">Ende der Bewertungen.</p>';
+        } else {
+          loadingIndicator.style.display = "none";
         }
       }
     }
 
-    const observer = new IntersectionObserver(
+    const modalObserver = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          loadRatings();
+        if (entries[0].isIntersecting && !isLoading) {
+          loadModalRatings();
         }
       },
-      { root: document.getElementById("ajax-modal") }
-    ); // Wichtig: Scroll-Container ist das Modal
+      { root: modalElement }
+    );
 
-    observer.observe(loadMoreTrigger);
-    loadRatings(); // Initiales Laden der ersten Seite
+    modalObserver.observe(trigger);
+    loadModalRatings();
   }
+
+  // In public/js/feed.js
 
   async function loadFeedItems() {
     if (isLoading || !nextPage) return;
@@ -245,13 +314,6 @@ document.addEventListener("DOMContentLoaded", function () {
         data.ratings.forEach((rating) => {
           const card = document.createElement("div");
           card.className = "card shadow-sm mb-4";
-
-          let comment = rating.comment || "";
-          let needsReadMore = comment.length > 150;
-          let shortComment = needsReadMore
-            ? comment.substring(0, 150).replace(/\s+\S*$/, "") + "..."
-            : comment;
-
           const avg =
             (parseFloat(rating.rating_taste) +
               parseFloat(rating.rating_appearance) +
@@ -259,126 +321,83 @@ document.addEventListener("DOMContentLoaded", function () {
               parseFloat(rating.rating_price) +
               parseFloat(rating.rating_service)) /
             5;
+          let comment = rating.comment || "";
+          let needsReadMore = comment.length > 150;
+          let shortComment = needsReadMore
+            ? comment.substring(0, 150).replace(/\s+\S*$/, "") + "..."
+            : comment;
 
+          // DIES IST DAS KORREKTE, SAUBERE LAYOUT FÜR DIE KARTE
           card.innerHTML = `
                     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-                    <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
-                      rating.id
-                    }">
-                      <i class="bi bi-hand-thumbs-up"></i> Hilfreich
-                      <span class="badge bg-success ms-1">${
-                        rating.helpful_count
-                      }</span>
-                    </button>
-                    <div>
-                <h5 class="mb-0">
-                <a href="#" class="text-decoration-none open-vendor-modal" data-url="/api/vendors/details/${
-                  rating.vendor_uuid
-                }" data-vendor-uuid="${rating.vendor_uuid}">
-                    ${rating.vendor_name}
-                </a>
-                ${
-                  rating.vendor_category === "mobil"
-                    ? '<span class="badge bg-warning text-dark ms-2">Mobil</span>'
-                    : ""
-                }
-           </h5>
-           <small class="text-muted">${rating.vendor_address || ""}</small>
-        </div>
-        <div class="text-center ps-3">
-            <h2 class="display-6 fw-bold mb-0">${avg.toFixed(1)}</h2>
-            <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
-              avg
-            )}</div>
-        </div>
-    </div>
-    <div class="card-body">
-        ${
-          comment
-            ? `<p class="card-text fst-italic">"${shortComment}"</p>${
-                needsReadMore
-                  ? `<button class="btn btn-link p-0 mb-3 open-single-rating-modal" data-url="/api/ratings/${rating.id}">Weiterlesen</button>`
-                  : ""
-              }`
-            : ""
-        }
-        
-        
-                        
                         <div>
-                            <div class="d-flex justify-content-between"><small>Aussehen:</small> <span class="text-warning">${renderStars(
-                              rating.rating_appearance
-                            )}</span></div>
-                            <div class="d-flex justify-content-between"><small>Geschmack:</small> <span class="text-warning">${renderStars(
-                              rating.rating_taste
-                            )}</span></div>
-                            <div class="d-flex justify-content-between"><small>Präsentation:</small> <span class="text-warning">${renderStars(
-                              rating.rating_presentation
-                            )}</span></div>
-                            <div class="d-flex justify-content-between"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
-                              rating.rating_price
-                            )}</span></div>
-                            <div class="d-flex justify-content-between"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
-                              rating.rating_service
-                            )}</span></div>
+                           <h5 class="mb-0">
+                                <a href="#" class="text-dark text-decoration-none open-vendor-modal" data-url="/vendor/${
+                                  rating.vendor_uuid
+                                }" data-vendor-uuid="${rating.vendor_uuid}">
+                                    ${rating.vendor_name}
+                                </a>
+                                ${
+                                  rating.vendor_category === "mobil"
+                                    ? '<span class="badge bg-warning text-dark ms-2">Mobil</span>'
+                                    : ""
+                                }
+                           </h5>
+                           <small class="text-muted">${
+                             rating.vendor_address || ""
+                           }</small>
                         </div>
-
-                        ${
-                          rating.image1 || rating.image2 || rating.image3
-                            ? `
-                            <div class="rating-images mt-3">
-                                <div class="row g-2">
-                                    ${
-                                      rating.image1
-                                        ? `<div class="col-3"><a href="/uploads/ratings/${rating.image1}" class="glightbox" data-gallery="feed-${rating.id}"><img src="/uploads/ratings/${rating.image1}" class="img-fluid rounded" alt="Bild 1"></a></div>`
-                                        : ""
-                                    }
-                                    ${
-                                      rating.image2
-                                        ? `<div class="col-3"><a href="/uploads/ratings/${rating.image2}" class="glightbox" data-gallery="feed-${rating.id}"><img src="/uploads/ratings/${rating.image2}" class="img-fluid rounded" alt="Bild 2"></a></div>`
-                                        : ""
-                                    }
-                                    ${
-                                      rating.image3
-                                        ? `<div class="col-3"><a href="/uploads/ratings/${rating.image3}" class="glightbox" data-gallery="feed-${rating.id}"><img src="/uploads/ratings/${rating.image3}" class="img-fluid rounded" alt="Bild 3"></a></div>`
-                                        : ""
-                                    }
-                                </div>
+                        <div class="text-center ps-3">
+                            <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
+                              1
+                            )}</h2>
+                            <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
+                              avg
+                            )}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <a href="#" class="open-user-modal" data-url="/api/users/${
+                              rating.user_id
+                            }">
+                                <img src="${
+                                  rating.avatar
+                                    ? "/uploads/avatars/" + rating.avatar
+                                    : "/assets/img/avatar-placeholder.png"
+                                }" alt="Avatar" class="avatar-image-sm rounded-circle me-2">
+                            </a>
+                            <div>
+                                <small class="text-muted">Bewertung von</small>
+                                <a href="#" class="open-user-modal text-dark text-decoration-none" data-url="/api/users/${
+                                  rating.user_id
+                                }">
+                                    <strong>${
+                                      rating.username || "Anonym"
+                                    }</strong>
+                                </a>
                             </div>
-                        `
+                        </div>
+                        <p class="card-text fst-italic">"${shortComment}"</p>
+                        ${
+                          needsReadMore
+                            ? `<button class="btn btn-link p-0 open-single-rating-modal" data-url="/api/ratings/${rating.id}">Weiterlesen...</button>`
                             : ""
                         }
                     </div>
                     <div class="card-footer text-muted d-flex justify-content-between align-items-center small py-2">
-        <button type="button" class="btn btn-sm btn-warning open-modal-form" data-url="/ratings/new?vendor_uuid=${
-          rating.uuid
-        }">
-            Diesen Anbieter bewerten
-        </button>
-        <div class="ms-2 text-end">
-           <div class="d-flex align-items-center">
-                <div class="me-2">
-                    Bewertet von 
-                    <a href="#" class="open-user-modal" data-url="/api/users/${
-                      rating.user_id
-                    }">
-                        <strong>${rating.username || "Anonym"}</strong>
-                    </a><br>
-                    <span style="font-size: 0.8em;">am ${new Date(
-                      rating.created_at
-                    ).toLocaleDateString("de-DE")}</span>
-                </div>
-                <img src="${
-                  rating.avatar
-                    ? "/uploads/avatars/" + rating.avatar
-                    : "/assets/img/avatar-placeholder.png"
-                }" 
-                     alt="Avatar von ${rating.username || "Anonym"}" 
-                     class="avatar-image-sm rounded-circle">
-           </div>
-        </div>
-    </div>
-                `;
+                        <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
+                          rating.id
+                        }">
+                            <i class="bi bi-hand-thumbs-up"></i> Hilfreich
+                            <span class="badge bg-success ms-1">${
+                              rating.helpful_count || 0
+                            }</span>
+                        </button>
+                        <small>Bewertet am ${new Date(
+                          rating.created_at
+                        ).toLocaleDateString("de-DE")}</small>
+                    </div>`;
           feedList.appendChild(card);
         });
 
@@ -399,18 +418,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch (error) {
       console.error("Fehler beim Laden des Feeds:", error);
-      loadingIndicator.innerHTML =
-        '<p class="text-danger">Laden des Feeds fehlgeschlagen.</p>';
     } finally {
       isLoading = false;
       if (!nextPage) {
-        if (feedList.children.length === 0) {
-          loadingIndicator.innerHTML =
-            '<p class="text-muted text-center my-4">Es gibt noch keine Bewertungen.</p>';
-        } else {
-          loadingIndicator.innerHTML =
-            '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
-        }
+        loadingIndicator.innerHTML =
+          feedList.children.length === 0
+            ? '<p class="text-muted text-center my-4">Es gibt noch keine Bewertungen.</p>'
+            : '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
       } else {
         loadingIndicator.style.display = "none";
       }
@@ -490,16 +504,23 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // +++ NEU: Die komplette Lazy-Loading-Funktion für das VENDOR-MODAL +++
+  // In public/js/feed.js
+
   function initializeLazyLoading(container, vendorUuid) {
+    // Dieser Teil ist für das MODAL, das vom FEED aus geöffnet wird.
     const ratingsList = container.querySelector("#ratings-list");
     const loadingIndicator = container.querySelector("#loading-indicator");
     const trigger = container.querySelector("#load-more-trigger");
-    if (!ratingsList || !loadingIndicator || !trigger) return;
+    if (!ratingsList || !loadingIndicator || !trigger) {
+      console.error("Lazy-Loading-Elemente im Modal nicht gefunden!");
+      return;
+    }
 
     let modalNextPage = 1;
     let modalIsLoading = false;
+    // Die 'lightbox'-Variable sollte im Haupt-Scope der feed.js deklariert sein.
 
-    // Wir leeren die Liste, um sicherzustellen, dass keine alten Bewertungen angezeigt werden
+    if (lazyLoadObserver) lazyLoadObserver.disconnect();
     ratingsList.innerHTML = "";
 
     async function loadModalRatings() {
@@ -516,114 +537,99 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.ratings && data.ratings.length > 0) {
           data.ratings.forEach((rating) => {
             const el = document.createElement("div");
-            el.className = "card mb-3";
-            // Hier Ihre vollständige, "schöne" HTML-Vorlage für eine Bewertungskarte einfügen
+            el.className = "card shadow-sm mb-3";
+            const avg =
+              (parseFloat(rating.rating_taste) +
+                parseFloat(rating.rating_appearance) +
+                parseFloat(rating.rating_presentation) +
+                parseFloat(rating.rating_price) +
+                parseFloat(rating.rating_service)) /
+              5;
+
+            // Dies ist die vollständige und korrekte Vorlage
             el.innerHTML = `
                         <div class="card-body">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex align-items-center mb-3">
+                                <a href="#" class="open-user-modal" data-url="/api/users/${
+                                  rating.user_id
+                                }">
+                                    <img src="${
+                                      rating.avatar
+                                        ? "/uploads/avatars/" + rating.avatar
+                                        : "/assets/img/avatar-placeholder.png"
+                                    }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
+                                </a>
                                 <div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <img src="${
-                                          rating.avatar
-                                            ? "/uploads/avatars/" +
-                                              rating.avatar
-                                            : "/assets/img/avatar-placeholder.png"
-                                        }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
-                                        <div>
-                                            <h6 class="card-title mb-0"><a href="#" class="open-user-modal" data-url="/api/users/${
-                                              rating.user_id
-                                            }">
-                                                <strong>${
-                                                  rating.username || "Anonym"
-                                                }</strong>
-                                            </a></h6>
-                                            <small class="text-muted">schrieb am ${new Date(
-                                              rating.created_at
-                                            ).toLocaleDateString(
-                                              "de-DE"
-                                            )}</small>
-                                        </div>
-                                    </div>
+                                    <a href="#" class="open-user-modal text-dark text-decoration-none" data-url="/api/users/${
+                                      rating.user_id
+                                    }">
+                                        <strong class="d-block">${
+                                          rating.username || "Anonym"
+                                        }</strong>
+                                    </a>
+                                    <small class="text-muted">hat am ${new Date(
+                                      rating.created_at
+                                    ).toLocaleDateString(
+                                      "de-DE"
+                                    )} bewertet:</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4 text-center d-flex flex-column justify-content-center align-items-center p-2 bg-light rounded">
+                                    <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
+                                      1
+                                    )}</h2>
+                                    <div class="text-warning">${renderStars(
+                                      avg
+                                    )}</div>
+                                    <small class="text-muted">Gesamt</small>
+                                </div>
+                                <div class="col-md-8">
                                     <p class="card-text fst-italic">"${
                                       rating.comment || "Kein Kommentar"
                                     }"</p>
                                 </div>
-                                <div class="text-center ps-3">
-                                    <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
-                                      1
-                                    )}</h2>
-                                    <div class="text-warning" style="font-size: 0.8rem;">${renderStars(
-                                      avg
-                                    )}</div>
-                                </div>
                             </div>
-                            <hr class="my-2">
-                            <div>
-                                <div class="d-flex justify-content-between"><small>Aussehen:</small> <span class="text-warning">${renderStars(
+                        </div>
+                        <div class="card-footer bg-white p-2">
+                             <div>
+                                <div class="d-flex justify-content-between small"><small>Aussehen:</small> <span class="text-warning">${renderStars(
                                   rating.rating_appearance
                                 )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Geschmack:</small> <span class="text-warning">${renderStars(
+                                <div class="d-flex justify-content-between small"><small>Geschmack:</small> <span class="text-warning">${renderStars(
                                   rating.rating_taste
                                 )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Präsentation:</small> <span class="text-warning">${renderStars(
+                                <div class="d-flex justify-content-between small"><small>Präsentation:</small> <span class="text-warning">${renderStars(
                                   rating.rating_presentation
                                 )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
+                                <div class="d-flex justify-content-between small"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
                                   rating.rating_price
                                 )}</span></div>
-                                <div class="d-flex justify-content-between"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
+                                <div class="d-flex justify-content-between small"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
                                   rating.rating_service
                                 )}</span></div>
                             </div>
-                            ${
-                              rating.image1 || rating.image2 || rating.image3
-                                ? `<div class="rating-images mt-3"><div class="row g-2">
-                                ${
-                                  rating.image1
-                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image1}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image1}" class="img-fluid rounded" alt="Bild 1"></a></div>`
-                                    : ""
-                                }
-                                ${
-                                  rating.image2
-                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image2}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image2}" class="img-fluid rounded" alt="Bild 2"></a></div>`
-                                    : ""
-                                }
-                                ${
-                                  rating.image3
-                                    ? `<div class="col-3"><a href="/uploads/ratings/${rating.image3}" class="glightbox" data-gallery="vendor-${vendorUuid}-rating-${rating.id}"><img src="/uploads/ratings/${rating.image3}" class="img-fluid rounded" alt="Bild 3"></a></div>`
-                                    : ""
-                                }
-                            </div></div>`
-                                : ""
-                            }
                         </div>
-                        <div class="card-footer text-muted d-flex justify-content-between align-items-center small py-2">
-        <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
-          rating.id
-        }">
-            <i class="bi bi-hand-thumbs-up"></i> Hilfreich
-            <span class="badge bg-success ms-1">${
-              rating.helpful_count || 0
-            }</span>
-        </button>
-        <div class="ms-2 text-end">
-           <div class="d-flex align-items-center">
-                <div class="me-2">
-                    Bewertet von <strong>${rating.username || "Anonym"}</strong>
-                </div>
-                <img src="${
-                  rating.avatar
-                    ? "/uploads/avatars/" + rating.avatar
-                    : "/assets/img/avatar-placeholder.png"
-                }" 
-                     alt="Avatar" class="avatar-image-sm rounded-circle">
-           </div>
-        </div>
-    </div>`;
+                        <div class="card-footer text-muted d-flex justify-content-start align-items-center small py-2">
+                            <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
+                              rating.id
+                            }">
+                                <i class="bi bi-hand-thumbs-up"></i> Hilfreich
+                                <span class="badge bg-success ms-1">${
+                                  rating.helpful_count || 0
+                                }</span>
+                            </button>
+                        </div>`;
             ratingsList.appendChild(el);
           });
 
-          //initOrReloadLightbox();
+          if (typeof GLightbox === "function") {
+            if (lightbox) lightbox.reload();
+            else {
+              lightbox = GLightbox({ selector: ".glightbox" });
+            }
+          }
           modalNextPage =
             data.pager.currentPage < data.pager.pageCount
               ? data.pager.currentPage + 1
@@ -634,10 +640,12 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (e) {
         console.error("Fehler beim Laden der Modal-Bewertungen:", e);
       } finally {
-        modalIsLoading = false;
+        isLoading = false;
         if (!modalNextPage) {
           loadingIndicator.innerHTML =
-            '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
+            ratingsList.children.length === 0
+              ? '<p class="text-muted text-center my-4">Für diesen Anbieter gibt es noch keine Bewertungen.</p>'
+              : '<p class="text-muted text-center my-4">Ende der Bewertungen.</p>';
         } else {
           loadingIndicator.style.display = "none";
         }
@@ -646,15 +654,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const modalObserver = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !modalIsLoading) {
+        if (entries[0].isIntersecting && !isLoading) {
           loadModalRatings();
         }
       },
       { root: modalElement }
-    ); // Wichtig: Beobachtet das Scrollen innerhalb des Modals
+    );
 
     modalObserver.observe(trigger);
-    loadModalRatings(); // Erste Seite der Modal-Bewertungen laden
+    loadModalRatings();
   }
 
   if (trigger) {

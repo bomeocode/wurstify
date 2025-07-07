@@ -85,15 +85,8 @@ class VendorModel extends Model
     /**
      * Holt alle Anbieter mit deren Durchschnittsbewertungen für die Kartenanzeige.
      */
-    // In app/Models/VendorModel.php
-
-    // In app/Models/VendorModel.php
-
-    // In app/Models/VendorModel.php
-
     public function getVendorsWithAverageRatings(?string $uuid = null)
     {
-        // Wir ersetzen 'vendors.*' durch eine explizite Liste, um Konsistenz zu schaffen
         $builder = $this->select('
             vendors.id,
             vendors.uuid,
@@ -102,6 +95,12 @@ class VendorModel extends Model
             vendors.latitude,
             vendors.longitude,
             vendors.category,
+            vendors.description,
+            vendors.opening_hours,
+            vendors.website_url,
+            vendors.social_media,
+            vendors.cover_image,
+            vendors.logo_image,
             AVG(ratings.rating_taste) as avg_taste,
             AVG(ratings.rating_appearance) as avg_appearance,
             AVG(ratings.rating_presentation) as avg_presentation,
