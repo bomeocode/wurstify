@@ -29,15 +29,20 @@ class VendorController extends BaseController
             return redirect()->to('admin/vendors')->with('error', 'Anbieter nicht gefunden.');
         }
 
-        return view('admin/vendors/edit', ['vendor' => $vendor]);
+        $data = [
+            'vendor' => $vendor,
+            'opening_hours' => json_decode($vendor['opening_hours'], true) ?? []
+        ];
+
+        return view('admin/vendors/edit', $data);
     }
 
     public function update($id = null)
     {
         $vendorModel = new VendorModel();
         $vendor = $vendorModel->find($id);
-        if (!$vendor) {
-            return redirect()->to('admin/vendors')->with('error', 'Anbieter nicht gefunden.');
+        if (empty($vendor)) {
+            return redirect()->back()->with('toast', ['message' => 'Anbieter nicht gefunden.', 'type' => 'danger']);
         }
 
         $rules = [
@@ -45,20 +50,35 @@ class VendorController extends BaseController
             'address'   => 'required|max_length[255]',
             'latitude'  => 'required|decimal',
             'longitude' => 'required|decimal',
-            'category'  => 'required',
+            'category'  => 'required|in_list[stationär,mobil]',
+            'description'   => 'permit_empty|string',
+            'website_url'   => 'permit_empty|valid_url_strict',
+            'opening_hours' => 'permit_empty|is_array',
+
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $postData = $this->request->getPost();
+        $updateData = [
+            'name'          => $this->request->getPost('name'),
+            'address'       => $this->request->getPost('address'),
+            'category'      => $this->request->getPost('category'),
+            'description'   => $this->request->getPost('description'),
+            'website_url'   => $this->request->getPost('website_url'),
+            'latitude'     => $this->request->getPost('latitude'),
+            'longitude'     => $this->request->getPost('longitude'),
+            'opening_hours' => json_encode($this->request->getPost('opening_hours')),
+        ];
 
-        if ($vendorModel->update($id, $postData)) {
-            return redirect()->to('admin/vendors')->with('message', 'Anbieter erfolgreich aktualisiert.');
+        if ($vendorModel->update($id, $updateData)) {
+            return redirect()->to(site_url('admin/vendors'))
+                ->with('toast', ['message' => 'Anbieter erfolgreich aktualisiert.', 'type' => 'success']);
         }
 
-        return redirect()->back()->withInput()->with('error', 'Fehler beim Speichern des Anbieters.');
+        return redirect()->back()->withInput()
+            ->with('toast', ['message' => 'Aktualisierung fehlgeschlagen.', 'type' => 'danger']);
     }
 
     public function delete($id = null)

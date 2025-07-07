@@ -11,7 +11,21 @@ class VendorModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
-    protected $allowedFields    = ['uuid', 'name', 'address', 'latitude', 'longitude', 'category'];
+    protected $allowedFields    = [
+        'uuid',
+        'name',
+        'address',
+        'latitude',
+        'longitude',
+        'category',
+        'owner_user_id',
+        'description',
+        'opening_hours',
+        'website_url',
+        'social_media',
+        'cover_image',
+        'logo_image'
+    ];
     protected $useTimestamps    = true;
     protected $beforeInsert     = ['generateUUID'];
 
