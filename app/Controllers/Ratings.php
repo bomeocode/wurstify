@@ -33,10 +33,9 @@ class Ratings extends ResourceController
 
         if ($this->request->isAJAX()) {
             if ($vendorData === null && $vendorUuid) {
-                // Diese Funktion ist jetzt verfügbar!
                 return $this->failNotFound('Der angegebene Anbieter konnte nicht gefunden werden.');
             }
-            return view('ratings/new_content_only', $data);
+            return view('ratings/rating_form', $data);
         }
 
         return view('ratings/new', $data);

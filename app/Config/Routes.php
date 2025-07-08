@@ -19,6 +19,7 @@ $routes->get('feed', 'Feed::index', ['filter' => 'session']);
 $routes->get('feedback', 'Feedback::index');
 $routes->post('feedback/create', 'Feedback::create', ['as' => 'feedback_create']);
 $routes->get('help/guide', 'Help::index');
+$routes->get('claim/form/(:segment)', 'ClaimController::showForm/$1');
 
 // Leitet die Standard-Login-URL auf unsere neue Logik um.
 $routes->get('login', 'AuthController::loginView');

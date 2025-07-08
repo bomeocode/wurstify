@@ -58,34 +58,28 @@ class RatingModel extends Model
 
     public function getFeedPage(int $limit = 10, int $offset = 0)
     {
-        return $this->select([
-            'ratings.id',
-            'ratings.user_id',
-            'ratings.comment',
-            'ratings.created_at',
-            'ratings.helpful_count',
-            'ratings.rating_appearance',
-            'ratings.rating_taste',
-            'ratings.rating_presentation',
-            'ratings.rating_price',
-            'ratings.rating_service',
-            'ratings.image1',
-            'ratings.image2',
-            'ratings.image3',
-            'vendors.uuid',
-            'vendors.uuid as vendor_uuid',
-            'vendors.name as vendor_name',
-            'vendors.address as vendor_address',
-            'vendors.category as vendor_category',
-            'users.username',
-            'users.avatar'
-        ])
-            ->join('vendors', 'vendors.id = ratings.vendor_id', 'left')
-            ->join('users', 'users.id = ratings.user_id', 'left')
-            ->orderBy('ratings.created_at', 'DESC')
-            ->limit($limit, $offset)
-            ->get()
-            ->getResult();
+        // Wir bauen die Abfrage als separates Objekt, um Konflikte zu vermeiden.
+        $builder = $this->db->table($this->table);
+
+        $builder->select('
+        ratings.id, ratings.user_id, ratings.comment, ratings.created_at,
+        ratings.helpful_count,
+        ratings.rating_appearance, ratings.rating_taste, ratings.rating_presentation,
+        ratings.rating_price, ratings.rating_service,
+        ratings.image1, ratings.image2, ratings.image3,
+        vendors.uuid as vendor_uuid,
+        vendors.name as vendor_name,
+        vendors.address as vendor_address,
+        vendors.category as vendor_category,
+        users.username,
+        users.avatar
+    ');
+        $builder->join('vendors', 'vendors.id = ratings.vendor_id', 'left');
+        $builder->join('users', 'users.id = ratings.user_id', 'left');
+        $builder->orderBy('ratings.created_at', 'DESC');
+        $builder->limit($limit, $offset);
+
+        return $builder->get()->getResult();
     }
 
     /**
@@ -180,13 +174,22 @@ class RatingModel extends Model
      */
     public function getPageForVendor(int $vendorId, int $limit = 10, int $offset = 0)
     {
-        return $this->select('ratings.*, users.username, users.avatar')
+        return $this->select('
+            ratings.*, 
+            users.username, 
+            users.avatar,
+            vendors.name as vendor_name,
+            vendors.uuid as vendor_uuid,
+            vendors.address as vendor_address,
+            vendors.category as vendor_category
+        ')
             ->join('users', 'users.id = ratings.user_id', 'left')
+            ->join('vendors', 'vendors.id = ratings.vendor_id', 'left') // Wichtig: Join für vendors
             ->where('ratings.vendor_id', $vendorId)
             ->orderBy('ratings.created_at', 'DESC')
             ->limit($limit, $offset)
             ->get()
-            ->getResult(); // Gibt Objekte zurück, was für JS gut ist
+            ->getResult();
     }
 
     // In app/Models/RatingModel.php

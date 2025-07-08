@@ -88,8 +88,39 @@
     <?php endif; ?>
   </div>
 
+  <div class="modal fade" id="ajax-modal" tabindex="-1" aria-labelledby="ajax-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-fullscreen-md-down modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ajax-modal-label">Lade...</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="ajax-modal-body">
+          <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="ajax-offcanvas" aria-labelledby="ajax-offcanvas-label">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="ajax-offcanvas-label">Lade...</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="ajax-offcanvas-body">
+      <div class="text-center p-5">
+        <div class="spinner-border" role="status"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
   <script type="module" src="/assets/js/main.js"></script>
+  <!-- <script type="module" src="/assets/js/app.js"></script> -->
 
   <?php
   try {
@@ -102,8 +133,6 @@
     // --
   }
   ?>
-
-
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -150,58 +179,19 @@
             console.log('Service Worker Registrierung fehlgeschlagen:', error);
           });
 
-        // DIESER LISTENER IST DIE EIGENTLICHE LÖSUNG
-        // Er wartet darauf, dass der neue Worker wirklich die Kontrolle übernimmt.
         let refreshing;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (refreshing) return;
-          // Erst wenn der Controller gewechselt hat, laden wir die Seite neu.
           window.location.reload();
           refreshing = true;
         });
       });
     }
-
-    // const showUpdatePrompt = (worker) => {
-    //   const updatePrompt = document.getElementById('update-prompt');
-    //   const reloadButton = document.getElementById('reload-button');
-    //   if (!updatePrompt || !reloadButton) return;
-
-    //   // Füge die Layout-Klassen hinzu, wenn der Hinweis gezeigt wird
-    //   updatePrompt.classList.add('d-flex', 'justify-content-between', 'align-items-center');
-    //   updatePrompt.style.display = 'block'; // 'block' ist ausreichend, da die Klassen flex steuern
-
-    //   reloadButton.onclick = () => {
-    //     worker.postMessage({
-    //       type: 'SKIP_WAITING'
-    //     });
-    //   };
-    // };
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <?= $this->renderSection('scripts') ?>
-
-  <div class="modal fade" id="ajax-modal" tabindex="-1" aria-labelledby="ajax-modal-label" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-fullscreen-md-down modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="ajax-modal-label">Lade...</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" id="ajax-modal-body">
-          <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <?= $this->renderSection('scripts') ?>
-
 </body>
 
 </html>

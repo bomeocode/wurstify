@@ -9,36 +9,34 @@ class FeedController extends ResourceController
 {
     public function index()
     {
-        $ratingModel = new \App\Models\RatingModel();
+        $ratingModel = new RatingModel();
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = 10;
 
-        $perPage = 10; // Wie viele Einträge pro Seite
-        $page = (int) ($this->request->getGet('page') ?? 1);
+        // HIER IST DIE KORREKTUR:
+        // 1. Zuerst die Gesamtanzahl aller Bewertungen zählen
+        $totalRatings = $ratingModel->countAllResults(false);
 
-        // 1. Manuell die Gesamtanzahl aller Bewertungen aus dem Model holen
-        $total = $ratingModel->countFeedItems();
-
-        // 2. Die Paginierungs-Daten manuell berechnen
-        $pageCount = (int) ceil($total / $perPage);
+        // 2. Den Offset für die aktuelle Seite berechnen
         $offset = ($page - 1) * $perPage;
 
-        // 3. Die Daten für die aktuelle Seite mit manuellem Limit/Offset holen
+        // 3. Erst jetzt die Daten für die spezifische Seite holen
         $ratings = $ratingModel->getFeedPage($perPage, $offset);
 
-        // 4. Unser eigenes, manuelles Pager-Objekt für das JSON erstellen
-        $pager_data = [
-            'currentPage' => $page,
-            'pageCount'   => $pageCount,
-            'perPage'     => $perPage,
-            'total'       => $total,
+        $renderedRatings = [];
+        foreach ($ratings as $rating) {
+            $renderedRatings[] = view('partials/rating_card', ['rating' => $rating]);
+        }
+
+        $pagerData = [
+            'currentPage' => (int)$page,
+            'pageCount'   => (int)ceil($totalRatings / $perPage)
         ];
 
-        // 5. Alles als JSON zurückgeben
-        $data = [
-            'ratings' => $ratings,
-            'pager'   => $pager_data,
-        ];
-
-        return $this->respond($data);
+        return $this->respond([
+            'ratings_html' => $renderedRatings,
+            'pager'        => $pagerData
+        ]);
     }
 
     public function newCount()

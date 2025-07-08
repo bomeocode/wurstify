@@ -129,3 +129,45 @@ window.loadContentIntoModal = async function (url, title) {
     modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
   }
 };
+
+/**
+ * Lädt Inhalte in das zentrale Offcanvas-Panel und zeigt es an.
+ * @param {string} url Die URL, von der der Inhalt geladen wird.
+ * @param {function(HTMLElement): void} [onReadyCallback] Eine optionale Funktion, die ausgeführt wird, nachdem der Inhalt geladen wurde.
+ */
+window.showOffcanvas = async function (url, onReadyCallback) {
+  const offcanvasEl = document.getElementById("ajax-offcanvas");
+  if (!offcanvasEl) return;
+
+  const offcanvasTitle = offcanvasEl.querySelector("#ajax-offcanvas-label");
+  const offcanvasBody = offcanvasEl.querySelector("#ajax-offcanvas-body");
+  const bsOffcanvas = new bootstrap.Offcanvas(offcanvasEl);
+
+  // Setze den Ladezustand
+  offcanvasTitle.textContent = "Lade...";
+  offcanvasBody.innerHTML =
+    '<div class="text-center p-5"><div class="spinner-border"></div></div>';
+
+  bsOffcanvas.show();
+
+  try {
+    const response = await fetch(url, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    if (!response.ok) throw new Error("Inhalt konnte nicht geladen werden.");
+
+    const html = await response.text();
+    offcanvasBody.innerHTML = html;
+
+    // Versuche, den Titel aus dem geladenen Inhalt zu extrahieren
+    const newTitle = offcanvasBody.querySelector("h1, h2, h3")?.textContent;
+    offcanvasTitle.textContent = newTitle || "Details";
+
+    // Führe die Callback-Funktion aus, wenn eine übergeben wurde
+    if (typeof onReadyCallback === "function") {
+      onReadyCallback(offcanvasBody);
+    }
+  } catch (error) {
+    offcanvasBody.innerHTML = `<div class="alert alert-danger m-3">${error.message}</div>`;
+  }
+};

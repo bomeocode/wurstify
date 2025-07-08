@@ -98,12 +98,6 @@ export function initializeRatingFormScripts(container, showToast) {
     });
   }
 
-  // --- SETUP der Elemente ---
-  const uploaderWraps = container.querySelectorAll(".rating-image-upload-wrap");
-  // console.log(
-  //   `[DEBUG] B: ${uploaderWraps.length} Upload-Container (.rating-image-upload-wrap) gefunden.`
-  // );
-
   // --- Logik für den Bilder-Uploader ---
   container.querySelectorAll(".rating-image-upload-wrap").forEach((wrap) => {
     const fileInput = wrap.querySelector(".rating-file-upload-input");

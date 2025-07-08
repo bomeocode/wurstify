@@ -108,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // === 2. ZENTRALE EVENT LISTENERS ===
   document.addEventListener("click", async function (e) {
-    // +++ NEUE LOGIK FÜR DEN VOTE-BUTTON +++
     const voteButton = e.target.closest(".vote-button");
     if (voteButton) {
       e.preventDefault();
@@ -164,11 +163,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const detailButton = e.target.closest(".open-vendor-modal");
     if (detailButton) {
       e.preventDefault();
-      loadVendorDetailsInModal(
-        detailButton.dataset.url,
-        detailButton.dataset.vendorUuid
-      );
+      // Rufe die neue, zentrale Funktion auf
+      window.showOffcanvas(detailButton.dataset.url, (container) => {
+        // Übergebe die Lazy-Loading-Initialisierung als Callback
+        initializeLazyLoading(container, detailButton.dataset.vendorUuid);
+      });
     }
+
     const formButton = e.target.closest(".open-modal-form");
     if (formButton) {
       e.preventDefault();
@@ -270,13 +271,6 @@ document.addEventListener("DOMContentLoaded", function () {
       initializeRatingFormScripts(container, displayToast);
     });
   }
-  // Ersetzen Sie die bestehende initializeLazyLoading-Funktion in dashboard.js
-
-  // Ersetzen Sie die bestehende initializeLazyLoading-Funktion in dashboard.js
-
-  // In public/js/dashboard.js
-
-  // In public/js/dashboard.js
 
   function initializeLazyLoading(container, vendorUuid) {
     const ratingsList = container.querySelector("#ratings-list");
@@ -308,108 +302,20 @@ document.addEventListener("DOMContentLoaded", function () {
         );
         const data = await response.json();
 
-        if (data.ratings && data.ratings.length > 0) {
-          data.ratings.forEach((rating) => {
-            const el = document.createElement("div");
-            el.className = "card shadow-sm mb-3";
-            const avg =
-              (parseFloat(rating.rating_taste) +
-                parseFloat(rating.rating_appearance) +
-                parseFloat(rating.rating_presentation) +
-                parseFloat(rating.rating_price) +
-                parseFloat(rating.rating_service)) /
-              5;
-
-            // +++ HIER IST DIE NEUE, AUFGERÄUMTE STRUKTUR +++
-            el.innerHTML = `
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4 text-center d-flex flex-column justify-content-center align-items-center p-2 bg-light rounded">
-                        <h2 class="display-6 fw-bold mb-0">${avg.toFixed(
-                          1
-                        )}</h2>
-                        <div class="text-warning">${renderStars(avg)}</div>
-                        <small class="text-muted">Gesamt</small>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center mb-2">
-                            <a href="#" class="open-user-modal" data-url="/api/users/${
-                              rating.user_id
-                            }">
-                                <img src="${
-                                  rating.avatar
-                                    ? "/uploads/avatars/" + rating.avatar
-                                    : "/assets/img/avatar-placeholder.png"
-                                }" alt="Avatar" class="avatar-image-md rounded-circle me-3">
-                            </a>
-                            <div>
-                                <a href="#" class="open-user-modal text-dark text-decoration-none" data-url="/api/users/${
-                                  rating.user_id
-                                }">
-                                    <strong class="d-block">${
-                                      rating.username || "Anonym"
-                                    }</strong>
-                                </a>
-                                <small class="text-muted">hat am ${new Date(
-                                  rating.created_at
-                                ).toLocaleDateString("de-DE")} bewertet:</small>
-                            </div>
-                        </div>
-                        <p class="card-text fst-italic mb-0">"${
-                          rating.comment || "Kein Kommentar"
-                        }"</p>
-                    </div>
-                </div>
-                <hr class="my-2">
-                <div>
-                    <div class="d-flex justify-content-between small"><small>Aussehen:</small> <span class="text-warning">${renderStars(
-                      rating.rating_appearance
-                    )}</span></div>
-                    <div class="d-flex justify-content-between small"><small>Geschmack:</small> <span class="text-warning">${renderStars(
-                      rating.rating_taste
-                    )}</span></div>
-                    <div class="d-flex justify-content-between small"><small>Präsentation:</small> <span class="text-warning">${renderStars(
-                      rating.rating_presentation
-                    )}</span></div>
-                    <div class="d-flex justify-content-between small"><small>Preis/Leistung:</small> <span class="text-warning">${renderStars(
-                      rating.rating_price
-                    )}</span></div>
-                    <div class="d-flex justify-content-between small"><small>Personal/Service:</small> <span class="text-warning">${renderStars(
-                      rating.rating_service
-                    )}</span></div>
-                </div>
-            </div>
-            <div class="card-footer text-muted d-flex justify-content-start align-items-center small py-2">
-                <button type="button" class="btn btn-sm btn-outline-success vote-button" data-rating-id="${
-                  rating.id
-                }">
-                    <i class="bi bi-hand-thumbs-up"></i> Hilfreich
-                    <span class="badge bg-success ms-1">${
-                      rating.helpful_count || 0
-                    }</span>
-                </button>
-            </div>
-        `;
-            ratingsList.appendChild(el);
+        if (data.ratings_html && data.ratings_html.length > 0) {
+          // Statt innerHTML zu bauen, fügen wir das fertige HTML einfach ein
+          data.ratings_html.forEach((html) => {
+            ratingsList.insertAdjacentHTML("beforeend", html);
           });
 
+          // GLightbox neu initialisieren
           if (typeof GLightbox === "function") {
-            // Zerstöre die alte Instanz, falls vorhanden
-            if (lightbox) {
-              lightbox.destroy();
+            if (lightbox) lightbox.reload();
+            else {
+              lightbox = GLightbox({ selector: ".glightbox" });
             }
-            // Erstelle immer eine neue Instanz mit der 'onclose'-Option
-            lightbox = GLightbox({
-              selector: ".glightbox",
-              touchNavigation: true,
-              loop: false,
-              onclose: () => {
-                // Zerstöre die Lightbox, wenn sie geschlossen wird.
-                lightbox.destroy();
-                lightbox = null;
-              },
-            });
           }
+
           modalNextPage =
             data.pager.currentPage < data.pager.pageCount
               ? data.pager.currentPage + 1
@@ -438,8 +344,8 @@ document.addEventListener("DOMContentLoaded", function () {
           loadModalRatings();
         }
       },
-      { root: modalElement }
-    );
+      { root: document.getElementById("ajax-offcanvas") }
+    ); // Wichtig: Beobachtet das Scrollen im Offcanvas
 
     if (trigger) {
       modalObserver.observe(trigger);

@@ -53,6 +53,12 @@ body {
   --bs-btn-hover-color: #fff;
 }
 
+@media (min-width: 992px) {
+  #ajax-offcanvas {
+    width: 600px; /* Sie können diesen Wert nach Belieben anpassen */
+  }
+}
+
 /* Das gleiche Prinzip für Alerts */
 .alert-success {
   --bs-alert-bg: #d4edda;

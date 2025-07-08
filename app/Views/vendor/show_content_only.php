@@ -2,6 +2,7 @@
 // --- Helfer-Variablen für die View vorbereiten ---
 $openingHours = json_decode($vendor['opening_hours'] ?? '[]', true);
 $socialMedia = json_decode($vendor['social_media'] ?? '[]', true);
+$hasOwner = !empty($vendor['owner_user_id']);
 
 $avgRating = number_format((
   floatval($vendor['avg_taste']) +
@@ -35,58 +36,74 @@ $avgRating = number_format((
     </button>
   </div>
 
-  <?php if (!empty($vendor['description'])): ?>
-    <div class="card my-4">
-      <div class="card-body">
-        <h5 class="card-title">Über uns</h5>
-        <p class="card-text"><?= nl2br(esc($vendor['description'])) ?></p>
-      </div>
-    </div>
-  <?php endif; ?>
+  <?php if ($hasOwner): ?>
 
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="card h-100">
+    <?php if (!empty($vendor['description'])): ?>
+      <div class="card my-4">
         <div class="card-body">
-          <h5 class="card-title mb-3">Öffnungszeiten</h5>
-          <ul class="list-unstyled opening-hours-list">
-            <?php
-            $days = ['monday' => 'Mo', 'tuesday' => 'Di', 'wednesday' => 'Mi', 'thursday' => 'Do', 'friday' => 'Fr', 'saturday' => 'Sa', 'sunday' => 'So'];
-            foreach ($days as $key => $day): ?>
-              <li>
-                <span><?= $day ?></span>
-                <span class="fw-bold"><?= esc($openingHours[$key] ?? 'geschlossen') ?></span>
-              </li>
-            <?php endforeach; ?>
-          </ul>
+          <h5 class="card-title">Über uns</h5>
+          <p class="card-text"><?= nl2br(esc($vendor['description'])) ?></p>
         </div>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Kontakt & Links</h5>
-          <div class="d-grid gap-2">
-            <?php if (!empty($vendor['website_url'])): ?>
-              <a href="<?= esc($vendor['website_url'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-globe me-2"></i>Webseite</a>
-            <?php endif; ?>
-            <?php if (!empty($socialMedia['facebook'])): ?>
-              <a href="https://facebook.com/<?= esc($socialMedia['facebook'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-facebook me-2"></i>Facebook</a>
-            <?php endif; ?>
-            <?php if (!empty($socialMedia['instagram'])): ?>
-              <a href="https://instagram.com/<?= esc($socialMedia['instagram'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-instagram me-2"></i>Instagram</a>
-            <?php endif; ?>
-            <?php if (!empty($socialMedia['tiktok'])): ?>
-              <a href="https://tiktok.com/@<?= esc($socialMedia['tiktok'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-tiktok me-2"></i>TikTok</a>
-            <?php endif; ?>
-            <?php if (!empty($socialMedia['youtube'])): ?>
-              <a href="https://youtube.com/<?= esc($socialMedia['youtube'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-youtube me-2"></i>YouTube</a>
-            <?php endif; ?>
+    <?php endif; ?>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Öffnungszeiten</h5>
+            <ul class="list-unstyled opening-hours-list">
+              <?php
+              $days = ['monday' => 'Mo', 'tuesday' => 'Di', 'wednesday' => 'Mi', 'thursday' => 'Do', 'friday' => 'Fr', 'saturday' => 'Sa', 'sunday' => 'So'];
+              foreach ($days as $key => $day): ?>
+                <li>
+                  <span><?= $day ?></span>
+                  <span class="fw-bold"><?= esc($openingHours[$key] ?? 'geschlossen') ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Kontakt & Links</h5>
+            <div class="d-grid gap-2">
+              <?php if (!empty($vendor['website_url'])): ?>
+                <a href="<?= esc($vendor['website_url'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-globe me-2"></i>Webseite</a>
+              <?php endif; ?>
+              <?php if (!empty($socialMedia['facebook'])): ?>
+                <a href="https://facebook.com/<?= esc($socialMedia['facebook'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-facebook me-2"></i>Facebook</a>
+              <?php endif; ?>
+              <?php if (!empty($socialMedia['instagram'])): ?>
+                <a href="https://instagram.com/<?= esc($socialMedia['instagram'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-instagram me-2"></i>Instagram</a>
+              <?php endif; ?>
+              <?php if (!empty($socialMedia['tiktok'])): ?>
+                <a href="https://tiktok.com/@<?= esc($socialMedia['tiktok'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-tiktok me-2"></i>TikTok</a>
+              <?php endif; ?>
+              <?php if (!empty($socialMedia['youtube'])): ?>
+                <a href="https://youtube.com/<?= esc($socialMedia['youtube'], 'attr') ?>" target="_blank" rel="noopener nofollow" class="btn btn-outline-primary"><i class="bi bi-youtube me-2"></i>YouTube</a>
+              <?php endif; ?>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+
+  <?php else: ?>
+    <div class="card text-center border-primary my-4">
+      <div class="card-body">
+        <h5 class="card-title">Ist das Ihr Imbiss?</h5>
+        <p class="card-text text-muted">Verwalten Sie Ihren Eintrag, antworten Sie auf Bewertungen und vieles mehr!</p>
+        <button type="button" class="btn btn-primary open-modal-form"
+          data-url="<?= site_url('claim/form/' . $vendor['uuid']) ?>"
+          title="Inhaberschaft beanspruchen">
+          Jetzt Inhaberschaft beanspruchen
+        </button>
+      </div>
+    </div>
+  <?php endif; ?>
 
   <hr class="my-4">
   <h3>Alle Bewertungen</h3>

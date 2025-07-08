@@ -11,59 +11,43 @@ class VendorController extends ResourceController
     /**
      * Liefert paginierte Bewertungen für einen spezifischen Anbieter.
      */
-    // In app/Controllers/Api/VendorController.php
-
-    // In app/Controllers/Api/VendorController.php
-
-    // In app/Controllers/Api/VendorController.php
-
     public function ratings($uuid = null)
     {
         $vendorModel = new \App\Models\VendorModel();
-        $vendor = $vendorModel->asArray()->where('uuid', $uuid)->first();
+        $vendor = $vendorModel->where('uuid', $uuid)->first();
 
         if (!$vendor) {
             return $this->failNotFound('Anbieter nicht gefunden.');
         }
 
-        $ratingModel = new \App\Models\RatingModel();
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = 10; // Anzahl der Bewertungen pro Ladevorgang
 
-        $perPage = 10;
-        $page = (int) ($this->request->getGet('page') ?? 1);
+        $ratingModel = new RatingModel();
 
-        // 1. Gesamtanzahl holen
-        $total = $ratingModel->countForVendor($vendor['id']);
+        // Wir holen die Bewertungen für die aktuelle Seite
+        $ratings = $ratingModel->getPageForVendor($vendor['id'], $perPage, ($page - 1) * $perPage);
 
-        // 2. Pager-Daten berechnen
-        $pageCount = (int) ceil($total / $perPage);
+        // Zähle die Gesamtanzahl der Bewertungen für diesen Anbieter
+        $totalRatings = $ratingModel->where('vendor_id', $vendor['id'])->countAllResults();
 
-        // +++ DEBUG-BLOCK START +++
-        // Wir stoppen die Ausführung hier und schauen uns die berechneten Werte an.
-        $debugData = [
-            'status' => 'Debugging Paginierungs-Daten...',
-            'vendor_id_used_for_count' => $vendor['id'],
-            'total_ratings_found_for_vendor' => $total,
-            'calculated_page_count' => $pageCount,
-            'current_page_requested' => $page
-        ];
-        //dd($debugData);
-        // +++ DEBUG-BLOCK ENDE +++
+        // Rendere für jede Bewertung die Partial View
+        $renderedRatings = [];
+        foreach ($ratings as $rating) {
+            $renderedRatings[] = view('partials/rating_card', ['rating' => $rating]);
+        }
 
-        $offset = ($page - 1) * $perPage;
-        $ratings = $ratingModel->getPageForVendor($vendor['id'], $perPage, $offset);
-
-        $pager_data = [
-            'currentPage' => $page,
-            'pageCount'   => $pageCount,
-            'perPage'     => $perPage,
-            'total'       => $total,
+        // Bereite die Pager-Informationen vor
+        $pagerData = [
+            'currentPage' => (int)$page,
+            'pageCount'   => (int)ceil($totalRatings / $perPage),
         ];
 
-        $data = ['ratings' => $ratings, 'pager'   => $pager_data,];
-        return $this->respond($data);
+        return $this->respond([
+            'ratings_html' => $renderedRatings,
+            'pager'        => $pagerData,
+        ]);
     }
-
-    // In app/Controllers/Api/VendorController.php
 
     /**
      * Liefert die HTML-Ansicht für die Details eines einzelnen Anbieters.
