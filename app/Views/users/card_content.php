@@ -1,22 +1,27 @@
-<?php
-// app/Views/users/card_content.php
-$level = $user->getLevel();
-?>
-<div class="text-center">
-  <img src="<?= $user->avatar ? '/uploads/avatars/' . esc($user->avatar, 'attr') : '/assets/img/avatar-placeholder.png' ?>"
-    alt="Avatar von <?= esc($user->username) ?>"
+<script type="application/json" id="user-card-data">
+  <?= json_encode($data) ?>
+</script>
+
+
+<div class="text-center" x-data="JSON.parse(document.getElementById('user-card-data').textContent)">
+
+  <img :src="user.avatar ? '/uploads/avatars/' + user.avatar : '/assets/img/avatar-placeholder.png'"
+    :alt="'Avatar von ' + user.username"
     class="rounded-circle mb-3"
     style="width: 120px; height: 120px; object-fit: cover;">
 
-  <h2 class="h4"><?= esc($user->username) ?></h2>
+  <h2 class="h4" x-text="user.username"></h2>
 
-  <?php if ($level): ?>
-    <p class="mb-1"><span class="badge bg-primary"><?= esc($level->name) ?></span></p>
+  <template x-if="level">
+    <div>
+      <p class="mb-1"><span class="badge bg-primary" x-text="level.name"></span></p>
+      <p class="text-muted small">
+        Hat insgesamt <span x-text="ratingCount"></span> Bewertungen abgegeben.
+      </p>
+    </div>
+  </template>
 
-    <p class="text-muted small">Hat insgesamt <?= $ratingCount ?> Bewertungen abgegeben.</p>
-  <?php endif; ?>
-
-  <?php if (!empty($user->bio)): ?>
-    <p class="text-muted fst-italic">"<?= esc($user->bio) ?>"</p>
-  <?php endif; ?>
+  <template x-if="user.bio">
+    <p class="text-muted fst-italic mt-3" x-text="'&quot;' + user.bio + '&quot;'"></p>
+  </template>
 </div>

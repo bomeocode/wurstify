@@ -9,33 +9,30 @@ class FeedController extends ResourceController
 {
     public function index()
     {
-        $ratingModel = new RatingModel();
+        $ratingModel = new \App\Models\RatingModel();
         $page = $this->request->getGet('page') ?? 1;
         $perPage = 10;
 
-        // HIER IST DIE KORREKTUR:
-        // 1. Zuerst die Gesamtanzahl aller Bewertungen zählen
-        $totalRatings = $ratingModel->countAllResults(false);
+        // Wir holen die paginierten Datenobjekte vom Model
+        $ratings = $ratingModel->getFeedPage($perPage, ($page - 1) * $perPage);
+        $totalRatings = $ratingModel->countFeedItems();
 
-        // 2. Den Offset für die aktuelle Seite berechnen
-        $offset = ($page - 1) * $perPage;
-
-        // 3. Erst jetzt die Daten für die spezifische Seite holen
-        $ratings = $ratingModel->getFeedPage($perPage, $offset);
-
-        $renderedRatings = [];
+        // Wir rendern für jede Bewertung die Partial View
+        $renderedHtml = '';
         foreach ($ratings as $rating) {
-            $renderedRatings[] = view('partials/rating_card', ['rating' => $rating]);
+            $renderedHtml .= view('partials/rating_card', ['rating' => $rating, 'context' => 'feed']);
         }
 
+        // Wir erstellen das Pager-Objekt manuell
         $pagerData = [
             'currentPage' => (int)$page,
-            'pageCount'   => (int)ceil($totalRatings / $perPage)
+            'pageCount'   => (int)ceil($totalRatings / $perPage),
         ];
 
+        // Wir geben das gerenderte HTML und den Pager zurück
         return $this->respond([
-            'ratings_html' => $renderedRatings,
-            'pager'        => $pagerData
+            'html'  => $renderedHtml,
+            'pager' => $pagerData
         ]);
     }
 

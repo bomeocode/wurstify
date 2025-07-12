@@ -1,8 +1,10 @@
-// Wir importieren die Funktion, die wir für das Bewertungsformular benötigen.
+// Wir importieren den Formular-Handler, da dessen Logik ausgelagert ist.
 import { initializeRatingFormScripts } from "./rating-form-handler.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-  // === 1. SETUP & KARTEN-INITIALISIERUNG ===
+  console.log("Dashboard Skript (FINALE, VOLLSTÄNDIGE VERSION) geladen.");
+
+  // === 1. SETUP & VARIABLEN ===
   const mapContainer = document.getElementById("map-container");
   if (!mapContainer) return;
 
@@ -21,13 +23,20 @@ document.addEventListener("DOMContentLoaded", function () {
   const map = L.map("map").setView(startCenter, startZoom);
 
   const modalElement = document.getElementById("ajax-modal");
+  const offcanvasElement = document.getElementById("ajax-offcanvas");
+  if (!modalElement || !offcanvasElement) return;
+
   const modalTitle = modalElement.querySelector(".modal-title");
   const modalBody = modalElement.querySelector(".modal-body");
+  const offcanvasTitle = offcanvasElement.querySelector(".offcanvas-title");
+  const offcanvasBody = offcanvasElement.querySelector(".offcanvas-body");
+
   const bsModal = new bootstrap.Modal(modalElement);
+  const bsOffcanvas = new bootstrap.Offcanvas(offcanvasElement);
 
   let lazyLoadObserver;
-  let lightbox;
 
+  // === 2. KARTEN-INITIALISIERUNG & POPUPS ===
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "© OpenStreetMap",
@@ -67,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
         c += "large";
       }
       return L.divIcon({
-        html: "<div><span>" + childCount + "</span></div>",
+        html: `<div><span>${childCount}</span></div>`,
         className: "marker-cluster" + c,
         iconSize: new L.Point(40, 40),
       });
@@ -77,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (vendorsData.length > 0) {
     vendorsData.forEach((vendor) => {
       const iconToUse = vendor.category === "mobil" ? mobilIcon : bratwurstIcon;
-      // console.log("Vendor-Category: " + vendor.category);
       const marker = L.marker([vendor.latitude, vendor.longitude], {
         icon: iconToUse,
       });
@@ -91,39 +99,44 @@ document.addEventListener("DOMContentLoaded", function () {
       marker.bindPopup(
         `<b>${vendor.vendor_name}</b><br><small>Gesamt: <b>${overallAvg.toFixed(
           1
-        )} ★</b> (${
-          vendor.total_ratings
-        } Bewertungen)</small><div class="d-flex mt-2"><button type="button" class="btn btn-sm btn-primary flex-grow-1 me-1 open-vendor-modal" data-url="/vendor/${
-          vendor.uuid
-        }" data-vendor-uuid="${
-          vendor.uuid
-        }">Details</button><button type="button" class="btn btn-sm btn-success flex-grow-1 ms-1 open-modal-form" data-url="/ratings/new?vendor_uuid=${
-          vendor.uuid
-        }">Bewerten</button></div>`
+        )} ★</b> (${vendor.total_ratings} Bewertungen)</small>` +
+          `<div class="d-flex mt-2">` +
+          `<button type="button" class="btn btn-sm btn-primary flex-grow-1 me-1 open-offcanvas" data-url="/api/vendors/details/${vendor.uuid}" data-vendor-uuid="${vendor.uuid}" title="Details für ${vendor.vendor_name}">Details</button>` +
+          `<button type="button" class="btn btn-sm btn-success flex-grow-1 ms-1 open-modal" data-url="/ratings/new?vendor_uuid=${vendor.uuid}" title="Bewerte ${vendor.vendor_name}">Bewerten</button>` +
+          `</div>`
       );
       markers.addLayer(marker);
     });
   }
   map.addLayer(markers);
 
-  // === 2. ZENTRALE EVENT LISTENERS ===
+  // === 3. ZENTRALER EVENT LISTENER ===
   document.addEventListener("click", async function (e) {
+    const offcanvasTrigger = e.target.closest(".open-offcanvas");
+    if (offcanvasTrigger) {
+      e.preventDefault();
+      await loadVendorDetailsInOffcanvas(
+        offcanvasTrigger.dataset.url,
+        offcanvasTrigger.dataset.vendorUuid
+      );
+    }
+
+    const modalTrigger = e.target.closest(".open-modal");
+    if (modalTrigger) {
+      e.preventDefault();
+      await loadFormIntoModal(modalTrigger.dataset.url);
+    }
+
     const voteButton = e.target.closest(".vote-button");
     if (voteButton) {
       e.preventDefault();
-
-      // Button sofort sperren, um Doppelklicks zu verhindern
       voteButton.disabled = true;
-
       const ratingId = voteButton.dataset.ratingId;
       const countSpan = voteButton.querySelector(".badge");
-
       try {
         const csrfToken = document.querySelector(
           'meta[name="X-CSRF-TOKEN-VALUE"]'
         )?.content;
-        if (!csrfToken) throw new Error("CSRF Token nicht gefunden.");
-
         const response = await fetch(`/api/ratings/${ratingId}/vote`, {
           method: "POST",
           headers: {
@@ -133,87 +146,53 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         const result = await response.json();
         if (!response.ok) throw result;
-
-        // UI mit der Server-Antwort aktualisieren
         if (countSpan) countSpan.textContent = result.new_count;
-        if (result.voted) {
-          voteButton.classList.remove("btn-outline-success");
-          voteButton.classList.add("btn-success");
-        } else {
-          voteButton.classList.remove("btn-success");
-          voteButton.classList.add("btn-outline-success");
-        }
+        voteButton.classList.toggle("btn-success", result.voted);
+        voteButton.classList.toggle("btn-outline-success", !result.voted);
       } catch (error) {
-        // Ihre Toast-Funktion verwenden, falls vorhanden
         console.error("Fehler beim Abstimmen:", error);
-        // displayToast(error.message || 'Abstimmung fehlgeschlagen', 'danger');
       } finally {
         voteButton.disabled = false;
       }
     }
-
-    // NEU: Erkennt Klicks auf Benutzer-Links
-    const userTrigger = e.target.closest(".open-user-modal");
-    if (userTrigger) {
-      e.preventDefault();
-      // Wir verwenden unsere universelle Lade-Funktion
-      loadContentIntoModal(userTrigger.dataset.url, "Benutzerprofil");
-    }
-
-    const detailButton = e.target.closest(".open-vendor-modal");
-    if (detailButton) {
-      e.preventDefault();
-      // Rufe die neue, zentrale Funktion auf
-      window.showOffcanvas(detailButton.dataset.url, (container) => {
-        // Übergebe die Lazy-Loading-Initialisierung als Callback
-        initializeLazyLoading(container, detailButton.dataset.vendorUuid);
-      });
-    }
-
-    const formButton = e.target.closest(".open-modal-form");
-    if (formButton) {
-      e.preventDefault();
-      loadFormIntoModal(formButton.dataset.url);
-    }
   });
 
   modalElement.addEventListener("submit", async function (e) {
-    if (e.target.tagName === "FORM" && e.target.closest("#ajax-modal")) {
-      e.preventDefault();
-      const form = e.target;
-      const submitButton = form.querySelector('button[type="submit"]');
-      if (!submitButton) return;
-      const originalButtonText = submitButton.innerHTML;
-      submitButton.disabled = true;
-      submitButton.innerHTML =
-        '<span class="spinner-border spinner-border-sm"></span> Speichere...';
-      try {
-        const formData = new FormData(form);
-        const response = await fetch(form.action, {
-          method: "POST",
-          body: formData,
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        });
-        const result = await response.json();
-        if (!response.ok) throw result;
-        displayToast(result.message || "Erfolgreich gespeichert.", "success");
-        bsModal.hide();
-        setTimeout(() => window.location.reload(), 1500);
-      } catch (error) {
-        const errorMessage = error.messages
-          ? Object.values(error.messages)[0]
-          : "Ein Fehler ist aufgetreten.";
-        displayToast(errorMessage, "danger");
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.innerHTML = originalButtonText;
-        }
+    if (e.target.tagName !== "FORM" || !e.target.closest("#ajax-modal")) return;
+    e.preventDefault();
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!submitButton) return;
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML =
+      '<span class="spinner-border spinner-border-sm"></span> Speichere...';
+    try {
+      const formData = new FormData(form);
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData,
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      const result = await response.json();
+      if (!response.ok) throw result;
+      displayToast(result.message || "Erfolgreich gespeichert.", "success");
+      bsModal.hide();
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      const errorMessage = error.messages
+        ? Object.values(error.messages)[0]
+        : "Ein Fehler ist aufgetreten.";
+      displayToast(errorMessage, "danger");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
       }
     }
   });
 
-  // === 3. HELFER-FUNKTIONEN ===
+  // === 4. HELFER-FUNKTIONEN ===
 
   function displayToast(message, type = "success") {
     const container = document.querySelector(".toast-container");
@@ -232,11 +211,32 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  async function loadContentIntoModal(url, title, onReadyCallback) {
-    modalTitle.textContent = "Lade...";
+  async function loadVendorDetailsInOffcanvas(url, vendorUuid) {
+    offcanvasTitle.textContent = "Lade Details...";
+    offcanvasBody.innerHTML =
+      '<div class="text-center p-5"><div class="spinner-border"></div></div>';
+    bsOffcanvas.show();
+    try {
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      if (!response.ok)
+        throw new Error(`Server antwortete mit Status ${response.status}`);
+      const html = await response.text();
+      offcanvasBody.innerHTML = html;
+      offcanvasTitle.textContent =
+        offcanvasBody.querySelector("h1, h2")?.textContent || "Details";
+      initializeLazyLoading(offcanvasBody, vendorUuid);
+    } catch (error) {
+      offcanvasBody.innerHTML = `<div class="alert alert-danger m-3">${error.message}</div>`;
+    }
+  }
+
+  async function loadFormIntoModal(url) {
+    modalTitle.textContent = "Lade Formular...";
     modalBody.innerHTML =
       '<div class="text-center p-5"><div class="spinner-border"></div></div>';
-    if (!bsModal._isShown) bsModal.show();
+    bsModal.show();
     try {
       const response = await fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -245,111 +245,13 @@ document.addEventListener("DOMContentLoaded", function () {
         throw new Error(`Server antwortete mit Status ${response.status}`);
       const html = await response.text();
       modalBody.innerHTML = html;
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
       modalTitle.textContent =
-        tempDiv.querySelector("h2,h1")?.textContent || title;
-      if (typeof onReadyCallback === "function") {
-        // Die CSRF-Daten werden für den Formular-Handler benötigt
-        const csrfInput = modalBody.querySelector('form input[name^="csrf_"]');
-        onReadyCallback(modalBody, csrfInput?.name, csrfInput?.value);
+        modalBody.querySelector("h1, h2")?.textContent || "Formular";
+      if (url.includes("/ratings/new")) {
+        initializeRatingFormScripts(modalBody, displayToast);
       }
     } catch (error) {
-      modalBody.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-    }
-  }
-
-  function loadVendorDetailsInModal(url, vendorUuid) {
-    loadContentIntoModal(url, "Details", (container) => {
-      initializeLazyLoading(container, vendorUuid);
-    });
-  }
-
-  function loadFormIntoModal(url) {
-    loadContentIntoModal(url, "Bratwurst bewerten", (container) => {
-      // Wir rufen die IMPORTIERTE Funktion auf und übergeben ihr alles, was sie braucht.
-      initializeRatingFormScripts(container, displayToast);
-    });
-  }
-
-  function initializeLazyLoading(container, vendorUuid) {
-    const ratingsList = container.querySelector("#ratings-list");
-    const loadingIndicator = container.querySelector("#loading-indicator");
-    const trigger = container.querySelector("#load-more-trigger");
-    if (!ratingsList || !loadingIndicator || !trigger) return;
-
-    let modalNextPage = 1,
-      isLoading = false,
-      lightbox;
-    if (lazyLoadObserver) lazyLoadObserver.disconnect();
-    ratingsList.innerHTML = "";
-
-    function renderStars(score) {
-      if (!score || score <= 0)
-        return '<small class="text-muted">Nicht bewertet</small>';
-      const s = Math.round(score);
-      return "★".repeat(s) + "☆".repeat(5 - s);
-    }
-
-    async function loadModalRatings() {
-      if (isLoading || !modalNextPage) return;
-      isLoading = true;
-      loadingIndicator.style.display = "block";
-
-      try {
-        const response = await fetch(
-          `/api/vendors/${vendorUuid}/ratings?page=${modalNextPage}`
-        );
-        const data = await response.json();
-
-        if (data.ratings_html && data.ratings_html.length > 0) {
-          // Statt innerHTML zu bauen, fügen wir das fertige HTML einfach ein
-          data.ratings_html.forEach((html) => {
-            ratingsList.insertAdjacentHTML("beforeend", html);
-          });
-
-          // GLightbox neu initialisieren
-          if (typeof GLightbox === "function") {
-            if (lightbox) lightbox.reload();
-            else {
-              lightbox = GLightbox({ selector: ".glightbox" });
-            }
-          }
-
-          modalNextPage =
-            data.pager.currentPage < data.pager.pageCount
-              ? data.pager.currentPage + 1
-              : null;
-        } else {
-          modalNextPage = null;
-        }
-      } catch (e) {
-        console.error("Fehler beim Laden der Modal-Bewertungen:", e);
-      } finally {
-        isLoading = false;
-        if (!modalNextPage) {
-          loadingIndicator.innerHTML =
-            ratingsList.children.length === 0
-              ? '<p class="text-muted text-center my-4">Für diesen Anbieter gibt es noch keine Bewertungen.</p>'
-              : '<p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>';
-        } else {
-          loadingIndicator.style.display = "none";
-        }
-      }
-    }
-
-    const modalObserver = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoading) {
-          loadModalRatings();
-        }
-      },
-      { root: document.getElementById("ajax-offcanvas") }
-    ); // Wichtig: Beobachtet das Scrollen im Offcanvas
-
-    if (trigger) {
-      modalObserver.observe(trigger);
-      loadModalRatings();
+      modalBody.innerHTML = `<div class="alert alert-danger m-3">${error.message}</div>`;
     }
   }
 });

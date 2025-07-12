@@ -119,78 +119,26 @@
   </div>
 
   <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-  <script type="module" src="/assets/js/main.js"></script>
-  <!-- <script type="module" src="/assets/js/app.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <script type="module" src="/assets/js/app.js"></script>
 
   <?php
   try {
-    $jsFileName = strtolower($currentController) . '.js';
+    $controllerName = strtolower(substr(strrchr(service('router')->controllerName(), '\\'), 1));
+    $jsFileName = $controllerName . '.js';
     $jsFilePath = FCPATH . 'assets/js/' . $jsFileName;
+
     if (file_exists($jsFilePath)) {
       echo '<script type="module" src="/assets/js/' . $jsFileName . '"></script>';
     }
   } catch (\Throwable $e) {
-    // --
+    // Fehler ignorieren, wenn die Route nicht ermittelt werden kann
   }
   ?>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('Service Worker: Registrierung erfolgreich.');
-
-            const showUpdatePrompt = (worker) => {
-              const updatePrompt = document.getElementById('update-prompt');
-              const reloadButton = document.getElementById('reload-button');
-
-              if (updatePrompt && reloadButton) {
-                updatePrompt.style.display = 'flex';
-                reloadButton.onclick = () => {
-                  // Der Button sendet jetzt NUR noch die Nachricht.
-                  worker.postMessage({
-                    type: 'SKIP_WAITING'
-                  });
-                  // Wir geben dem Nutzer sofort visuelles Feedback.
-                  updatePrompt.innerHTML = '<span>Update wird installiert...</span><div class="spinner-border spinner-border-sm ms-2" role="status"></div>';
-                };
-              }
-            };
-
-            // Prüfen, ob bereits ein Worker wartet
-            if (registration.waiting) {
-              showUpdatePrompt(registration.waiting);
-            }
-
-            // Lauschen auf zukünftige Updates
-            registration.onupdatefound = () => {
-              const installingWorker = registration.installing;
-              if (installingWorker) {
-                installingWorker.onstatechange = () => {
-                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    showUpdatePrompt(installingWorker);
-                  }
-                };
-              }
-            };
-          })
-          .catch(error => {
-            console.log('Service Worker Registrierung fehlgeschlagen:', error);
-          });
-
-        let refreshing;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (refreshing) return;
-          window.location.reload();
-          refreshing = true;
-        });
-      });
-    }
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <?= $this->renderSection('scripts') ?>
 </body>
 

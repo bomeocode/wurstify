@@ -1,5 +1,10 @@
 <?php
-// --- Helfer-Variablen für die View vorbereiten ---
+$initData = htmlspecialchars(json_encode([
+  'uuid' => $vendor['uuid'],
+  'initialRatingsHtml' => $ratings_html ?? [],
+  'initialPager' => $pager ?? ['currentPage' => 1, 'pageCount' => 1]
+]));
+
 $openingHours = json_decode($vendor['opening_hours'] ?? '[]', true);
 $socialMedia = json_decode($vendor['social_media'] ?? '[]', true);
 $hasOwner = !empty($vendor['owner_user_id']);
@@ -31,7 +36,7 @@ $avgRating = number_format((
   </div>
 
   <div class="d-grid my-4">
-    <button type="button" class="btn btn-lg btn-warning open-modal-form" data-url="/ratings/new?vendor_uuid=<?= esc($vendor['uuid']) ?>">
+    <button type="button" class="btn btn-lg btn-warning open-modal" data-url="/ratings/new?vendor_uuid=<?= esc($vendor['uuid']) ?>">
       ★ Diesen Anbieter jetzt bewerten
     </button>
   </div>
@@ -105,11 +110,23 @@ $avgRating = number_format((
     </div>
   <?php endif; ?>
 
-  <hr class="my-4">
-  <h3>Alle Bewertungen</h3>
-  <div id="ratings-list"></div>
-  <div id="loading-indicator" class="text-center my-4" style="display: none;">
-    <div class="spinner-border"></div>
+  <div x-data="vendorDetailComponent(<?= $initData ?>)">
+
+    <hr class="my-4">
+    <h3>Alle Bewertungen</h3>
+
+    <div id="modal-ratings-list">
+      <?php foreach ($ratings_html ?? [] as $html): ?>
+        <?= $html ?>
+      <?php endforeach; ?>
+    </div>
+
+    <div x-show="isLoading" class="text-center my-4">
+      <div class="spinner-border"></div>
+    </div>
+    <div x-show="!isLoading && nextPage" x-intersect:enter="loadMoreRatings()"></div>
+    <template x-if="!nextPage && ratingsLoaded">
+      <p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>
+    </template>
   </div>
-  <div id="load-more-trigger"></div>
 </div>

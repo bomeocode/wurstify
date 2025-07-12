@@ -21,16 +21,32 @@
 <h2>Neue Bratwurst-Bewertung</h2>
 
 <?= form_open(route_to('rating_create'), ['id' => 'rating-form-modal']) ?>
+<?= csrf_field() ?>
 <input type="hidden" name="vendor_id" value="<?= esc($vendor['id'] ?? '') ?>">
 
 <div id="manual-address-section" class="mb-3">
   <label for="address_manual" class="form-label">Adresse des Anbieters</label>
   <input type="text" class="form-control" name="address_manual" id="address_manual" value="<?= esc($vendor['address'] ?? '') ?>" <?= isset($vendor) ? 'readonly' : '' ?>>
+  <button class="btn btn-outline-secondary w-100 mt-2" type="button" id="use-current-location" <?= isset($vendor) ? 'disabled' : '' ?>>
+    <i class="bi bi-geo-alt"></i> Meinen aktuellen Standort verwenden
+  </button>
+  <div id="vendor-suggestions" class="list-group mt-2"></div>
 </div>
 <div class="mb-3">
   <label for="vendor_name" class="form-label">Name des Anbieters*</label>
   <input type="text" class="form-control" name="vendor_name" id="vendor_name" required value="<?= esc($vendor['name'] ?? '') ?>" <?= isset($vendor) ? 'readonly' : '' ?>>
 </div>
+<?php if (!isset($vendor)): ?>
+  <div class="mb-4" id="vendor-category-block">
+    <label class="form-label d-block">Art des Anbieters*</label>
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="vendor_category" id="category-stationaer" value="stationär" autocomplete="off" checked>
+      <label class="btn btn-outline-primary" for="category-stationaer">Stationär</label>
+      <input type="radio" class="btn-check" name="vendor_category" id="category-mobil" value="mobil" autocomplete="off">
+      <label class="btn btn-outline-primary" for="category-mobil">Mobil / Event</label>
+    </div>
+  </div>
+<?php endif; ?>
 <hr>
 <h5 class="mt-4">Ihre Bewertung</h5>
 

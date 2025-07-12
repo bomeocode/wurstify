@@ -7,10 +7,11 @@ use App\Models\UserModel;
 
 class UserController extends ResourceController
 {
+    // In app/Controllers/Api/UserController.php
+
     public function show($id = null)
     {
-        $userModel = new UserModel();
-        // Wir verwenden unsere erweiterte User-Entität!
+        $userModel = new \App\Models\UserModel();
         $user = $userModel->find($id);
 
         if (empty($user)) {
@@ -18,14 +19,15 @@ class UserController extends ResourceController
         }
 
         $ratingModel = new \App\Models\RatingModel();
-        $ratingCount = $ratingModel->where('user_id', $id)->countAllResults();
 
-        // Wir übergeben sowohl den Benutzer als auch die Anzahl seiner Ratings an die View
-        $data = [
+        // Wir sammeln alle Daten, die unsere Komponente benötigt
+        $dataForComponent = [
             'user'        => $user,
-            'ratingCount' => $ratingCount,
+            'level'       => $user->getLevel(),
+            'ratingCount' => $ratingModel->where('user_id', $id)->countAllResults()
         ];
 
-        return view('users/card_content', $data);
+        // Wir übergeben dieses eine Datenpaket an die View
+        return view('users/card_content', ['data' => $dataForComponent]);
     }
 }
