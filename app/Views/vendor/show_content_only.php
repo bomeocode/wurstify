@@ -1,6 +1,6 @@
 <?php
 $initData = htmlspecialchars(json_encode([
-  'uuid' => $vendor['uuid'],
+  'vendor' => $vendor,
   'initialRatingsHtml' => $ratings_html ?? [],
   'initialPager' => $pager ?? ['currentPage' => 1, 'pageCount' => 1]
 ]));
@@ -27,7 +27,7 @@ $avgRating = number_format((
 <div class="container-fluid px-3 py-4">
 
   <div class="text-center" style="margin-top: 40px; margin-bottom: 1rem;">
-    <h1 class="h3"><?= esc($vendor['vendor_name']) ?></h1>
+    <h1 class="h3"><?= esc($vendor['name']) ?></h1>
     <?php if ($vendor['category'] === 'mobil'): ?>
       <span class="badge bg-warning text-dark">Mobil / Event</span>
     <?php endif; ?>
@@ -101,7 +101,7 @@ $avgRating = number_format((
       <div class="card-body">
         <h5 class="card-title">Ist das Ihr Imbiss?</h5>
         <p class="card-text text-muted">Verwalten Sie Ihren Eintrag, antworten Sie auf Bewertungen und vieles mehr!</p>
-        <button type="button" class="btn btn-primary open-modal-form"
+        <button type="button" class="btn btn-primary open-claim-form"
           data-url="<?= site_url('claim/form/' . $vendor['uuid']) ?>"
           title="Inhaberschaft beanspruchen">
           Jetzt Inhaberschaft beanspruchen
@@ -110,23 +110,26 @@ $avgRating = number_format((
     </div>
   <?php endif; ?>
 
-  <div x-data="vendorDetailComponent(<?= $initData ?>)">
-
+  <div x-data="vendorDetailComponent(<?= $initData ?>)" x-init="init()">
     <hr class="my-4">
     <h3>Alle Bewertungen</h3>
 
-    <div id="modal-ratings-list">
-      <?php foreach ($ratings_html ?? [] as $html): ?>
-        <?= $html ?>
-      <?php endforeach; ?>
+    <div id="ratings-list">
+      <template x-for="ratingHtml in ratingsHtml" :key="ratingHtml">
+        <div x-html="ratingHtml"></div>
+      </template>
     </div>
 
     <div x-show="isLoading" class="text-center my-4">
       <div class="spinner-border"></div>
     </div>
-    <div x-show="!isLoading && nextPage" x-intersect:enter="loadMoreRatings()"></div>
+    <div x-show="!isLoading && nextPage"
+      x-intersect:enter="console.log('[DEBUG] Intersect: TRIGGER IST SICHTBAR'); loadMoreRatings()"
+      x-intersect:leave="console.log('[DEBUG] Intersect: Trigger ist nicht mehr sichtbar')">
+    </div>
     <template x-if="!nextPage && ratingsLoaded">
       <p class="text-muted text-center my-4">Ende der Bewertungen erreicht.</p>
     </template>
   </div>
+</div>
 </div>

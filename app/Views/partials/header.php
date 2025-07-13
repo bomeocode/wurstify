@@ -23,9 +23,11 @@
               <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('profile') ?>">Profil</a>
               </li>
-              <!-- <li class="nav-item">
-                <a class="nav-link" href="<?= base_url('settings') ?>">Einstellungen</a>
-              </li> -->
+              <?php if (auth()->loggedIn() && user_is_in_group('vendor')): ?>
+                <li class="nav-item">
+                  <a class="nav-link" href="<?= route_to('vendor_dashboard') ?>">Mein Geschäft</a>
+                </li>
+              <?php endif; ?>
               <li class="nav-item">
                 <a class="nav-link" href="<?= base_url('logout') ?>">Logout</a>
               </li>

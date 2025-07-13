@@ -57,6 +57,10 @@ class AuthGroups extends ShieldAuthGroups
             'title'       => 'User',
             'description' => 'General users of the site. Often customers.',
         ],
+        'vendor' => [
+            'title'       => 'Vendor',
+            'description' => 'Ein verifizierter Inhaber eines Anbieter-Profils.',
+        ],
         'beta' => [
             'title'       => 'Beta User',
             'description' => 'Has access to beta-level features.',

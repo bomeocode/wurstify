@@ -15,7 +15,7 @@
         <small>Feed <span id="feed-badge" class="badge rounded-pill bg-danger" style="display: none;"></span></small>
       </a>
 
-      <a class="nav-link nav-feedback text-center text-white open-modal-form" href="#" data-url="<?= site_url('feedback') ?>">
+      <a class="nav-link nav-feedback text-center text-white open-modal" href="#" data-url="<?= site_url('feedback') ?>">
         <?php echo $currentController == 'Merch' ? '<i class="bi bi-chat-quote-fill fs-4 d-block mx-auto mb-1"></i>' : '<i class="bi bi-chat-quote fs-4 d-block mx-auto mb-1"></i>';
         ?>
         <small>Feedback</small>

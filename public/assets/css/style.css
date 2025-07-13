@@ -712,3 +712,30 @@ body {
 .opening-hours-list li:last-child {
   border-bottom: none;
 }
+
+/* Vendor-Area */
+
+.image-uploader-box {
+  border: 2px dashed #ced4da;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease-in-out;
+  min-height: 170px; /* Stellt eine Mindesthöhe sicher */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-uploader-box:hover {
+  border-color: var(--wurstify-primary);
+  background-color: #e9ecef;
+}
+
+.image-uploader-box img {
+  max-height: 150px;
+  width: auto;
+  max-width: 100%;
+}

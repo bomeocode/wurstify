@@ -5,27 +5,32 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+
+$routes->get('login', 'AuthController::loginView');
+$routes->post('login', 'AuthController::handleLogin');
+service('auth')->routes($routes);
+
 $routes->get('/', 'Dashboard::index');
 $routes->get('/dashboard', 'Dashboard::index');
 $routes->get('/ratings', 'Ratings::new');
 $routes->get('/ratings/new', 'Ratings::new');
 $routes->post('ratings/create', 'Ratings::create', ['as' => 'rating_create']);
-$routes->get('/feed', 'Feed::index');
+//$routes->get('/feed', 'Feed::index');
 $routes->get('/merch', 'Merch::index');
 $routes->get('/settings', 'Settings::index');
 $routes->get('vendor/(:segment)', 'Vendor::show/$1');
-//$routes->get('api/vendors/(:segment)/ratings', 'Api\VendorRatings::index/$1');
 $routes->get('feed', 'Feed::index', ['filter' => 'session']);
 $routes->get('feedback', 'Feedback::index');
 $routes->post('feedback/create', 'Feedback::create', ['as' => 'feedback_create']);
 $routes->get('help/guide', 'Help::index');
+
 $routes->get('claim/form/(:segment)', 'ClaimController::showForm/$1');
+$routes->post('claim/submit', 'ClaimController::submit', ['as' => 'claim_submit', 'filter' => 'session']);
 
 // Leitet die Standard-Login-URL auf unsere neue Logik um.
-$routes->get('login', 'AuthController::loginView');
-// Verarbeitet die POST-Daten unseres neuen Formulars.
-$routes->post('login', 'AuthController::handleLogin');
-service('auth')->routes($routes);
+// $routes->get('login', 'AuthController::loginView');
+// $routes->post('login', 'AuthController::handleLogin');
+// service('auth')->routes($routes);
 
 // Profil bearbeiten
 $routes->group('profile', ['filter' => 'session'], static function ($routes) {
@@ -34,7 +39,13 @@ $routes->group('profile', ['filter' => 'session'], static function ($routes) {
   $routes->post('update/password', 'Profile::updatePassword', ['as' => 'profile_update_password']);
 });
 
-$routes->group('api', ['filter' => 'session'], static function ($routes) {
+$routes->group('my-vendor', ['filter' => 'group:vendor'], static function ($routes) {
+  $routes->get('/', 'VendorDashboardController::index', ['as' => 'vendor_dashboard']);
+  $routes->get('edit', 'VendorDashboardController::edit', ['as' => 'vendor_edit']);
+  $routes->post('update', 'VendorDashboardController::update', ['as' => 'vendor_update']);
+});
+
+$routes->group('api', ['filter' => 'session', 'csrf'], static function ($routes) {
   $routes->post('avatar-upload', 'Api\AvatarUpload::upload');
   $routes->post('rating-image-upload', 'Api\RatingImageUpload::upload');
   $routes->post('rating-image-delete', 'Api\RatingImageUpload::delete');
@@ -72,4 +83,8 @@ $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
   $routes->get('levels', 'Admin\UserLevelController::index', ['as' => 'admin_levels_index']);
   $routes->get('levels/(:num)/edit', 'Admin\UserLevelController::edit/$1', ['as' => 'admin_level_edit']);
   $routes->post('levels/(:num)/update', 'Admin\UserLevelController::update/$1', ['as' => 'admin_level_update']);
+
+  $routes->get('claims', 'Admin\ClaimController::index', ['as' => 'admin_claims']);
+  $routes->get('claims/(:num)', 'Admin\ClaimController::show/$1', ['as' => 'admin_claim_show']);
+  $routes->post('claims/process', 'Admin\ClaimController::process', ['as' => 'admin_claim_process']);
 });

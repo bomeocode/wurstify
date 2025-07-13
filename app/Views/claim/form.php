@@ -4,19 +4,19 @@
 
 <div data-init-function="initializeClaimFormScripts">
   <?= form_open('claim/submit') ?>
-  <input type="hidden" name="vendor_uuid" value="<?= esc($vendor['uuid']) ?>">
+  <input type="hidden" id="vendor_uuid" name="vendor_uuid" value="<?= esc($vendor['uuid']) ?>">
 
   <div class="mb-3">
-    <label for="name" class="form-label">Ihr vollständiger Name</label>
-    <input type="text" class="form-control" name="name" required>
+    <label for="claimant_name" class="form-label">Ihr vollständiger Name</label>
+    <input type="text" class="form-control" id="claimant_name" name="claimant_name" required>
   </div>
   <div class="mb-3">
     <label for="contact_email" class="form-label">Ihre Kontakt-E-Mail</label>
-    <input type="email" class="form-control" name="contact_email" value="<?= auth()->user()->email ?? '' ?>" required>
+    <input type="email" class="form-control" id="contact_email" name="contact_email" value="<?= auth()->user()->email ?? '' ?>" required>
   </div>
   <div class="mb-3">
-    <label for="proof" class="form-label">Nachweis (z.B. Gewerbeschein-Nummer, Link zum Impressum)</label>
-    <textarea name="proof" class="form-control" rows="4" required></textarea>
+    <label for="proof_text" class="form-label">Nachweis (z.B. Gewerbeschein-Nummer, Link zum Impressum)</label>
+    <textarea class="form-control" id="proof_text" name="proof_text" rows="4" required></textarea>
   </div>
   <div class="d-grid">
     <button type="submit" class="btn btn-primary">Anspruch senden</button>

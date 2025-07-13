@@ -2,25 +2,23 @@
 // === Globale app.js - Finale, stabile Version
 // ========================================================
 
+import { initializeRatingFormScripts } from "./rating-form-handler.js";
+
 let lightboxInstance; // Globale Variable, um die Instanz zu speichern
 
-/**
- * Initialisiert eine neue GLightbox-Instanz oder lädt eine bestehende neu.
- * Das stellt sicher, dass auch nachgeladene Bilder den Lightbox-Effekt erhalten.
- */
 window.initOrReloadLightbox = function () {
-  // Führe nichts aus, wenn die GLightbox-Bibliothek nicht geladen ist.
   if (typeof GLightbox !== "function") {
+    console.error("GLightbox nicht geladen.");
     return;
   }
 
-  // Wenn schon eine Instanz existiert, lade sie neu.
   if (lightboxInstance) {
     lightboxInstance.reload();
   } else {
-    // Ansonsten erstelle eine neue Instanz.
     lightboxInstance = GLightbox({
       selector: ".glightbox",
+      touchNavigation: true,
+      loop: false,
     });
   }
 };
@@ -46,6 +44,49 @@ window.showToast = function (message, type = "info") {
     );
   }
 };
+
+document.addEventListener("alpine:init", () => {
+  // -- Komponente für die Vendor-Detailansicht (mit Lazy Loading & Lightbox) --
+  Alpine.data("vendorDetailComponent", (initialData) => ({
+    uuid: initialData.vendor.uuid,
+    ratingsHtml: initialData.ratings_html || [],
+    isLoading: false,
+    nextPage:
+      initialData.pager.currentPage < initialData.pager.pageCount
+        ? initialData.pager.currentPage + 1
+        : null,
+    ratingsLoaded: initialData.ratings_html.length > 0,
+
+    loadMoreRatings() {
+      if (this.isLoading || !this.nextPage) return;
+      this.isLoading = true;
+      fetch(`/api/vendors/${this.uuid}/ratings?page=${this.nextPage}`)
+        .then((res) => res.json())
+        .then((data) => {
+          this.ratingsHtml = this.ratingsHtml.concat(data.ratings_html);
+          this.nextPage =
+            data.pager.currentPage < data.pager.pageCount
+              ? data.pager.currentPage + 1
+              : null;
+          this.$nextTick(() => {
+            window.initOrReloadLightbox();
+          });
+        })
+        .catch((err) =>
+          window.showToast(
+            "Bewertungen konnten nicht geladen werden.",
+            "danger"
+          )
+        )
+        .finally(() => (this.isLoading = false));
+    },
+    init() {
+      this.$nextTick(() => {
+        window.initOrReloadLightbox();
+      });
+    },
+  }));
+});
 
 /**
  * Erstellt das Datenobjekt für eine Alpine.js ratingCard Komponente.
@@ -89,19 +130,14 @@ window.ratingCard = function (initialData) {
       return "★".repeat(s) + "☆".repeat(5 - s);
     },
     toggleVote() {
-      if (!"<?= auth()->logged() ?>") {
-        // Diese PHP-Prüfung funktioniert hier nicht, muss im Backend erfolgen.
-        window.showToast("Bitte einloggen, um abzustimmen.", "info");
-        // Hier könnte man zur Login-Seite leiten: window.location.href = '/login';
-        return;
-      }
       this.loading = true;
-      const csrfToken = document.querySelector(
-        "meta[name='csrf-token']"
-      )?.content;
       const csrfHeader = document.querySelector(
-        "meta[name='csrf-header']"
+        'meta[name="X-CSRF-TOKEN-NAME"]'
       )?.content;
+      const csrfToken = document.querySelector(
+        'meta[name="X-CSRF-TOKEN-VALUE"]'
+      )?.content;
+
       let headers = {
         "X-Requested-With": "XMLHttpRequest",
         Accept: "application/json",
@@ -128,48 +164,53 @@ window.ratingCard = function (initialData) {
   };
 };
 
-// In public/js/app.js
-
 window.vendorDetailComponent = function (initialData) {
   return {
-    // Daten aus PHP übernehmen
-    vendorUuid: initialData.uuid,
-
-    // Lokaler Zustand für diese Komponente
+    // === ZUSTAND (State) ===
+    // Wir speichern das ganze Vendor-Objekt
+    vendor: initialData.vendor,
     isLoading: false,
-    ratingsLoaded: initialData.initialRatingsHtml.length > 0,
-
-    // Pager-Initialisierung
+    ratingsHtml: initialData.initialRatingsHtml || [],
     nextPage:
       initialData.initialPager.currentPage < initialData.initialPager.pageCount
         ? initialData.initialPager.currentPage + 1
         : null,
+    ratingsLoaded: initialData.initialRatingsHtml.length > 0,
 
-    // Die Methode zum Nachladen
+    // === METHODE zum Nachladen ===
     loadMoreRatings() {
       if (this.isLoading || !this.nextPage) return;
       this.isLoading = true;
 
-      fetch(`/api/vendors/${this.vendorUuid}/ratings?page=${this.nextPage}`)
+      // KORREKTUR: Wir verwenden jetzt this.vendor.uuid
+      fetch(`/api/vendors/${this.vendor.uuid}/ratings?page=${this.nextPage}`)
         .then((response) => response.json())
         .then((data) => {
-          const ratingsList = document.getElementById("modal-ratings-list");
-          if (ratingsList && data.ratings_html) {
-            ratingsList.insertAdjacentHTML(
-              "beforeend",
-              data.ratings_html.join("")
-            );
-          }
-
-          window.initOrReloadLightbox();
-
+          this.ratingsHtml = this.ratingsHtml.concat(data.ratings_html);
           this.nextPage =
             data.pager.currentPage < data.pager.pageCount
               ? data.pager.currentPage + 1
               : null;
-
           this.isLoading = false;
+          this.$nextTick(() => {
+            if (window.initOrReloadLightbox) window.initOrReloadLightbox();
+          });
+        })
+        .catch(() => {
+          this.isLoading = false;
+          window.showToast(
+            "Bewertungen konnten nicht geladen werden.",
+            "danger"
+          );
         });
+    },
+
+    // === INIT-METHODE ===
+    init() {
+      // Lightbox für die initialen Bilder aufrufen
+      this.$nextTick(() => {
+        if (window.initOrReloadLightbox) window.initOrReloadLightbox();
+      });
     },
   };
 };
@@ -205,6 +246,10 @@ window.loadInOverlay = async function (type, url, title, onReadyCallback) {
     bodyEl.innerHTML = await response.text();
     titleEl.textContent = bodyEl.querySelector("h1, h2")?.textContent || title;
 
+    if (url.includes("/ratings/new")) {
+      initializeRatingFormScripts(bodyEl, window.showToast);
+    }
+
     if (typeof GLightbox === "function") {
       if (lightboxInstance) {
         lightboxInstance.reload();
@@ -221,94 +266,24 @@ window.loadInOverlay = async function (type, url, title, onReadyCallback) {
   }
 };
 
-/**
- * Globale Funktion zum Lazy-Loading von Bewertungen im Offcanvas.
- */
-window.initializeLazyLoading = function (container, vendorUuid) {
-  const ratingsList = container.querySelector("#ratings-list");
-  const loadingIndicator = container.querySelector("#loading-indicator");
-  const trigger = container.querySelector("#load-more-trigger");
-  if (!ratingsList || !loadingIndicator || !trigger) return;
-
-  let nextPage = 1,
-    isLoading = false,
-    lightbox;
-  ratingsList.innerHTML = "";
-
-  async function loadRatings() {
-    if (isLoading || !nextPage) return;
-    isLoading = true;
-    loadingIndicator.style.display = "block";
-    try {
-      const response = await fetch(
-        `/api/vendors/${vendorUuid}/ratings?page=${nextPage}`
-      );
-      const data = await response.json();
-      if (data.ratings_html && data.ratings_html.length > 0) {
-        data.ratings_html.forEach((html) =>
-          ratingsList.insertAdjacentHTML("beforeend", html)
-        );
-        nextPage =
-          data.pager.currentPage < data.pager.pageCount
-            ? data.pager.currentPage + 1
-            : null;
-      } else {
-        nextPage = null;
-      }
-    } catch (e) {
-      console.error("Fehler beim Laden der Bewertungen:", e);
-    } finally {
-      isLoading = false;
-      if (!nextPage) {
-        loadingIndicator.innerHTML =
-          ratingsList.children.length === 0
-            ? '<p class="text-muted text-center my-4">Noch keine Bewertungen.</p>'
-            : '<p class="text-muted text-center my-4">Ende erreicht.</p>';
-      } else {
-        loadingIndicator.style.display = "none";
-      }
-    }
-  }
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting && !isLoading) loadRatings();
-    },
-    { root: container.closest(".offcanvas") }
-  );
-
-  observer.observe(trigger);
-  loadRatings();
-};
-
 // Dieser Listener wird einmal beim Laden der Seite initialisiert.
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Globale app.js geladen und bereit.");
+  console.log("Globale app.js geladen.");
 
-  // Zentraler Klick-Listener, der die Overlays steuert
+  // Zentraler Klick-Listener, der nur noch die Overlays öffnet
   document.addEventListener("click", function (e) {
-    // Test-Zeile: Schreibt bei JEDEM Klick etwas in die Konsole
-    // console.log("Ein Klick wurde im Dokument registriert.");
-
-    const trigger = e.target.closest(".open-modal, .open-offcanvas");
+    const trigger = e.target.closest(
+      ".open-modal, .open-offcanvas, .open-claim-form"
+    );
     if (trigger) {
-      // console.log("Trigger-Element gefunden:", trigger);
       e.preventDefault();
-
       const type = trigger.classList.contains("open-offcanvas")
         ? "offcanvas"
         : "modal";
       const url = trigger.dataset.url;
       const title = trigger.title || "Information";
-      const callbackName = trigger.dataset.initCallback;
-      const vendorUuid = trigger.dataset.vendorUuid;
 
-      const onReadyCallback =
-        callbackName && typeof window[callbackName] === "function"
-          ? (container) => window[callbackName](container, vendorUuid)
-          : null;
-
-      window.loadInOverlay(type, url, title, onReadyCallback);
+      loadInOverlay(type, url, title);
     }
   });
 
@@ -317,7 +292,66 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = e.target.closest("#ajax-modal form, #ajax-offcanvas form");
     if (form) {
       e.preventDefault();
-      // ... Ihr vollständiger AJAX-Submit-Code ...
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      let originalButtonText = "Senden";
+
+      if (submitButton) {
+        originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML =
+          '<span class="spinner-border spinner-border-sm"></span> Sende...';
+      }
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          // Wirft den Fehler, damit wir ihn im catch-Block behandeln können
+          throw result;
+        }
+
+        // Erfolgsfall
+        window.showToast(result.message || "Aktion erfolgreich.", "success");
+
+        // Overlay schließen
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("ajax-modal")
+        );
+        const offcanvas = bootstrap.Offcanvas.getInstance(
+          document.getElementById("ajax-offcanvas")
+        );
+        if (modal && modal._isShown) modal.hide();
+        if (offcanvas && offcanvas._isShown) offcanvas.hide();
+
+        // Wenn die Antwort eine URL zur Weiterleitung enthält, führen wir sie aus
+        if (result.redirect_url) {
+          setTimeout(() => {
+            window.location.href = result.redirect_url;
+          }, 1000);
+        }
+      } catch (error) {
+        // Fehlerfall (z.B. Validierung)
+        const errorMessage =
+          error && error.messages
+            ? Object.values(error.messages)[0]
+            : "Ein unbekannter Fehler ist aufgetreten.";
+        window.showToast(errorMessage, "danger");
+      } finally {
+        // Button in jedem Fall wiederherstellen
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButtonText;
+        }
+      }
     }
   });
 

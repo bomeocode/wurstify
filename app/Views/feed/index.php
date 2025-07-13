@@ -40,11 +40,13 @@
             const feedList = document.getElementById('feed-list');
             feedList.insertAdjacentHTML('beforeend', data.html);
 
-            if (window.initOrReloadLightbox) window.initOrReloadLightbox();
-
             this.nextPage = (data.pager.currentPage < data.pager.pageCount) ?
               data.pager.currentPage + 1 :
               null;
+
+            this.$nextTick(() => {
+              window.initOrReloadLightbox();
+            });
 
             this.itemsLoaded = true;
             this.isLoading = false;
