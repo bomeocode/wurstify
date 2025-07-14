@@ -95,6 +95,7 @@ document.addEventListener("alpine:init", () => {
 window.ratingCard = function (initialData) {
   return {
     // Daten aus PHP übernehmen
+    ...initialData,
     id: initialData.id,
     comment: initialData.comment,
     helpful_count: initialData.helpful_count,
@@ -104,6 +105,7 @@ window.ratingCard = function (initialData) {
     avg: initialData.avg,
     details: initialData.details,
     images: initialData.images,
+    type: initialData.type,
 
     // Lokaler Zustand für diese Karte
     expanded: false,

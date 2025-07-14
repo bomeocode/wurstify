@@ -74,7 +74,7 @@ class Filters extends BaseFilters
             // 'honeypot',
             'csrf' => ['except' => ['media/upload']],
             // 'invalidchars',
-            'session' => ['except' => ['login*', 'register', 'auth/*']],
+            'session' => ['except' => ['login*', 'register', 'auth/*', 'rate', 'rate/*']],
         ],
         'after' => [
             // 'honeypot',

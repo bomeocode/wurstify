@@ -1,4 +1,4 @@
-const CACHE_NAME = "wurstify-v7.1";
+const CACHE_NAME = "wurstify-v7.2";
 const OFFLINE_URL = "offline.html";
 
 self.addEventListener("install", (event) => {

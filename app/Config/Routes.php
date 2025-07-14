@@ -27,10 +27,8 @@ $routes->get('help/guide', 'Help::index');
 $routes->get('claim/form/(:segment)', 'ClaimController::showForm/$1');
 $routes->post('claim/submit', 'ClaimController::submit', ['as' => 'claim_submit', 'filter' => 'session']);
 
-// Leitet die Standard-Login-URL auf unsere neue Logik um.
-// $routes->get('login', 'AuthController::loginView');
-// $routes->post('login', 'AuthController::handleLogin');
-// service('auth')->routes($routes);
+$routes->get('rate/(:segment)', 'RateController::index/$1', ['as' => 'rate_vendor_qr']);
+$routes->post('rate/(:segment)', 'RateController::store/$1');
 
 // Profil bearbeiten
 $routes->group('profile', ['filter' => 'session'], static function ($routes) {
@@ -44,6 +42,7 @@ $routes->group('my-vendor', ['filter' => 'group:vendor'], static function ($rout
   $routes->get('edit', 'VendorDashboardController::edit', ['as' => 'vendor_edit']);
   $routes->post('update', 'VendorDashboardController::update', ['as' => 'vendor_update']);
   $routes->post('upload-image', 'VendorDashboardController::ajaxImageUpload', ['as' => 'vendor_image_upload']);
+  $routes->get('qr-code', 'VendorDashboardController::qrCode', ['as' => 'vendor_qr_code']);
 });
 
 $routes->group('api', ['filter' => 'session', 'csrf'], static function ($routes) {

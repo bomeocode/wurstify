@@ -2,6 +2,16 @@
 
 namespace App\Controllers;
 
+// Fügen Sie diese "use"-Anweisungen am Anfang der Datei hinzu:
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Label\Label;
+use Endroid\QrCode\Logo\Logo;
+use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\QrCode;
+
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\VendorModel;
 
@@ -134,5 +144,35 @@ class VendorDashboardController extends ResourceController
         }
 
         return $this->failServerError('Datei konnte nicht auf dem Server gespeichert werden.');
+    }
+
+    public function qrCode()
+    {
+        if (!$this->vendor) {
+            return redirect()->to('/')->with('error', 'Ihnen ist kein Anbieter zugewiesen.');
+        }
+
+        $url = site_url('rate/' . $this->vendor['slug']);
+
+        $writer = new PngWriter();
+
+        $qrCode = new QrCode(
+            data: $url,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 300,
+            margin: 10,
+            roundBlockSizeMode: RoundBlockSizeMode::Margin,
+        );
+
+        $result = $writer->write($qrCode);
+
+        $dataUri = $result->getDataUri();
+
+        return view('vendor_dashboard/qr_code', [
+            'qrCodeDataUri' => $dataUri,
+            'currentController' => 'VendorDashboardController',
+            'currentMethod' => 'qrCode'
+        ]);
     }
 }

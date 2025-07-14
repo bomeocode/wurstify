@@ -31,13 +31,15 @@ class RatingModel extends Model
         'image2',
         'image3',
         'helpful_count',
+        'type',
+        'qr_nickname'
     ];
 
     /**
      * Die Validierungsregeln, die zu den neuen Spalten passen.
      */
     protected $validationRules = [
-        'user_id'           => 'required',
+        'user_id'           => 'permit_empty|integer',
         'vendor_id'         => 'required|integer|is_not_unique[vendors.id]', // Stellt sicher, dass der Vendor existiert
         'rating_appearance' => 'required|in_list[1,2,3,4,5]',
         'rating_taste'      => 'required|in_list[1,2,3,4,5]',
@@ -67,6 +69,7 @@ class RatingModel extends Model
         ratings.rating_appearance, ratings.rating_taste, ratings.rating_presentation,
         ratings.rating_price, ratings.rating_service,
         ratings.image1, ratings.image2, ratings.image3,
+        ratings.type, ratings.qr_nickname,
         vendors.uuid as vendor_uuid,
         vendors.name as vendor_name,
         vendors.address as vendor_address,
@@ -101,6 +104,8 @@ class RatingModel extends Model
             'ratings.image1',
             'ratings.image2',
             'ratings.image3',
+            'ratings.type',
+            'ratings.qr_nickname',
             'vendors.name as vendor_name',
             'vendors.address as vendor_address',
             'vendors.category as vendor_category',

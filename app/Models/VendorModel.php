@@ -24,7 +24,8 @@ class VendorModel extends Model
         'website_url',
         'social_media',
         'cover_image',
-        'logo_image'
+        'logo_image',
+        'slug'
     ];
     protected $useTimestamps    = true;
     protected $beforeInsert     = ['generateUUID'];
@@ -135,5 +136,10 @@ class VendorModel extends Model
         }
 
         return $builder->paginate(15); // 15 Anbieter pro Seite
+    }
+
+    public function findBySlug(string $slug)
+    {
+        return $this->where('slug', $slug)->first();
     }
 }

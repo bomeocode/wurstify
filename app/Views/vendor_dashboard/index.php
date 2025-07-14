@@ -33,10 +33,9 @@
             <dd class="col-sm-9"><?= $vendor['website_url'] ? '<a href="' . esc($vendor['website_url'], 'attr') . '" target="_blank">' . esc($vendor['website_url']) . '</a>' : 'Nicht angegeben' ?></dd>
           </dl>
 
-          <div class="d-grid mt-4">
-            <a href="<?= route_to('vendor_edit') ?>" class="btn btn-primary btn-lg">
-              Profil jetzt bearbeiten
-            </a>
+          <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
+            <a href="<?= route_to('vendor_edit') ?>" class="btn btn-primary btn-lg">Profil bearbeiten</a>
+            <a href="<?= route_to('vendor_qr_code') ?>" class="btn btn-outline-secondary btn-lg">QR-Code abrufen</a>
           </div>
         </div>
       </div>

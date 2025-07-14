@@ -5,12 +5,19 @@ $ratingData = json_encode([
   'comment' => $rating->comment ?? '',
   'helpful_count' => $rating->helpful_count ?? 0,
   'user_has_voted' => $rating->user_has_voted ?? false,
-  'user' => ['id' => $rating->user_id, 'name' => $rating->username ?? 'Anonym', 'avatar' => $rating->avatar ? '/uploads/avatars/' . $rating->avatar : '/assets/img/avatar-placeholder.png'],
+  'type' => $rating->type,
+  'qr_nickname' => $rating->qr_nickname,
+  'user' => [
+    'id' => $rating->user_id,
+    'name' => ($rating->type === 'qr_code') ? ($rating->qr_nickname ?? 'Anonym') : ($rating->username ?? 'Anonym'),
+    'avatar' => $rating->avatar ? '/uploads/avatars/' . $rating->avatar : '/assets/img/avatar-placeholder.png',
+  ],
   'vendor' => ['uuid' => $rating->vendor_uuid ?? null, 'name' => $rating->vendor_name ?? null, 'category' => $rating->vendor_category ?? null, 'address' => $rating->vendor_address ?? null],
   'avg' => number_format(($rating->rating_taste + $rating->rating_appearance + $rating->rating_presentation + $rating->rating_price + $rating->rating_service) / 5, 1),
   'details' => ['Aussehen' => round($rating->rating_appearance), 'Geschmack' => round($rating->rating_taste), 'Präsentation' => round($rating->rating_presentation), 'Preis/Leistung' => round($rating->rating_price), 'Personal/Service' => round($rating->rating_service)],
   'images' => array_values(array_filter([$rating->image1, $rating->image2, $rating->image3]))
 ]);
+
 ?>
 
 <div class="card shadow-sm mb-4" x-data="ratingCard(<?= htmlspecialchars($ratingData) ?>)">
@@ -37,15 +44,35 @@ $ratingData = json_encode([
 
   <div class="card-body">
     <div class="d-flex align-items-center mb-3">
-      <a href="#" class="open-user-modal" :data-url="`/api/users/${user.id}`" :title="`Benutzerprofil von ${user.name}`">
-        <img :src="user.avatar" class="avatar-image-sm rounded-circle me-2">
-      </a>
+
+      <template x-if="type === 'qr_code'">
+        <span class="me-2">
+          <img :src="'/assets/img/avatar-placeholder.png'" alt="QR-Code Bewertung" class="avatar-image-sm rounded-circle">
+        </span>
+      </template>
+      <template x-if="type !== 'qr_code'">
+        <a href="#" class="open-modal me-2" :data-url="`/api/users/${user.id}`" :title="`Benutzerprofil von ${user.name}`">
+          <img :src="user.avatar" :alt="'Avatar von ' + user.name" class="avatar-image-sm rounded-circle">
+        </a>
+      </template>
+
       <div>
         <small class="text-muted">Bewertung von</small>
-        <a href="#" class="open-modal text-dark text-decoration-none" :data-url="`/api/users/${user.id}`" :title="`Benutzerprofil von ${user.name}`">
-          <strong x-text="user.name"></strong>
-        </a>
+        <template x-if="type === 'qr_code'">
+          <div>
+            <strong class="" x-text="qr_nickname || 'Anonym'"></strong>
+            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill">
+              <i class="bi bi-qr-code-scan me-1"></i>Am Stand bewertet
+            </span>
+          </div>
+        </template>
+        <template x-if="type !== 'qr_code'">
+          <a href="#" class="open-modal text-dark text-decoration-none" :data-url="`/api/users/${user.id}`" :title="`Benutzerprofil von ${user.name}`">
+            <strong x-text="user.name"></strong>
+          </a>
+        </template>
       </div>
+
     </div>
 
     <div x-data="{ expanded: false }">
