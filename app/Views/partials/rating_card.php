@@ -42,7 +42,7 @@ $ratingData = json_encode([
       </a>
       <div>
         <small class="text-muted">Bewertung von</small>
-        <a href="#" class="open-user-modal text-dark text-decoration-none" :data-url="`/api/users/${user.id}`" :title="`Benutzerprofil von ${user.name}`">
+        <a href="#" class="open-modal text-dark text-decoration-none" :data-url="`/api/users/${user.id}`" :title="`Benutzerprofil von ${user.name}`">
           <strong x-text="user.name"></strong>
         </a>
       </div>

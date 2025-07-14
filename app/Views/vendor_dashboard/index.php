@@ -43,5 +43,21 @@
 
     </div>
   </div>
+
+  <hr class="my-5">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      <h3 class="text-center mb-4">Live-Vorschau</h3>
+      <div class="border rounded shadow-sm overflow-hidden bg-white">
+        <?php if ($vendor): ?>
+          <?= view('vendor_dashboard/preview_card', [
+            'vendor' => (array) $vendor
+          ]) ?>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
 </div>
 <?= $this->endSection() ?>

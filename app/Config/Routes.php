@@ -43,6 +43,7 @@ $routes->group('my-vendor', ['filter' => 'group:vendor'], static function ($rout
   $routes->get('/', 'VendorDashboardController::index', ['as' => 'vendor_dashboard']);
   $routes->get('edit', 'VendorDashboardController::edit', ['as' => 'vendor_edit']);
   $routes->post('update', 'VendorDashboardController::update', ['as' => 'vendor_update']);
+  $routes->post('upload-image', 'VendorDashboardController::ajaxImageUpload', ['as' => 'vendor_image_upload']);
 });
 
 $routes->group('api', ['filter' => 'session', 'csrf'], static function ($routes) {

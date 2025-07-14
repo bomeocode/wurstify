@@ -1,6 +1,6 @@
 <h2>Inhaberschaft für "<?= esc($vendor['name']) ?>" beanspruchen</h2>
 <hr>
-<p>Um sicherzustellen, dass nur der rechtmäßige Besitzer diesen Eintrag verwalten kann, benötigen wir einen einfachen Nachweis von Ihnen.</p>
+<p><strong>Um sicherzustellen, dass nur der rechtmäßige Besitzer diesen Eintrag verwalten kann, benötigen wir einen einfachen Nachweis von Ihnen. Wir werden diesbezüglich Kontakt mit Ihnen aufnehmen.</strong></p>
 
 <div data-init-function="initializeClaimFormScripts">
   <?= form_open('claim/submit') ?>
@@ -15,7 +15,7 @@
     <input type="email" class="form-control" id="contact_email" name="contact_email" value="<?= auth()->user()->email ?? '' ?>" required>
   </div>
   <div class="mb-3">
-    <label for="proof_text" class="form-label">Nachweis (z.B. Gewerbeschein-Nummer, Link zum Impressum)</label>
+    <label for="proof_text" class="form-label">Ihre Nachricht / Weitere Kontaktdaten</label>
     <textarea class="form-control" id="proof_text" name="proof_text" rows="4" required></textarea>
   </div>
   <div class="d-grid">

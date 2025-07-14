@@ -10,7 +10,7 @@
   <div id="map"></div>
 </div>
 
-<button type="button" class="fab-help open-modal-form" data-url="<?= site_url('help/guide') ?>" title="Anleitung anzeigen">
+<button type="button" class="fab-help open-modal" data-url="<?= site_url('help/guide') ?>" title="Anleitung anzeigen">
   <i class="bi bi-question-lg"></i>
 </button>
 

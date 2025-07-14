@@ -1,0 +1,1 @@
+{"version":1,"defects":{"Tests\\Feature\\Api\\VendorDetailTest::testShowReturnsSuccessWithValidUuid":8,"Tests\\Feature\\Api\\VendorDetailTest::testShowReturnsNotFoundWithInvalidUuid":8},"times":{"Tests\\Feature\\Api\\VendorDetailTest::testShowReturnsSuccessWithValidUuid":0.015,"Tests\\Feature\\Api\\VendorDetailTest::testShowReturnsNotFoundWithInvalidUuid":0.02}}

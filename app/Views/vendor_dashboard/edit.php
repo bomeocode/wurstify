@@ -156,7 +156,7 @@
       // Visuelles Feedback (z.B. Rand animieren)
       preview.style.border = '2px solid #0d6efd';
 
-      fetch("<?= route_to('admin_vendor_image_upload') ?>", {
+      fetch("<?= route_to('vendor_image_upload') ?>", {
           method: 'POST',
           body: formData,
           headers: {

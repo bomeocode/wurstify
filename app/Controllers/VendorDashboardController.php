@@ -2,9 +2,10 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\RESTful\ResourceController;
 use App\Models\VendorModel;
 
-class VendorDashboardController extends BaseController
+class VendorDashboardController extends ResourceController
 {
     private $vendor;
     private $vendorModel;
@@ -25,10 +26,31 @@ class VendorDashboardController extends BaseController
             return redirect()->to('/')->with('error', 'Ihnen ist kein Anbieter zugewiesen.');
         }
 
-        return view('vendor_dashboard/index', ['vendor' => $this->vendor]);
+        // Wir holen uns das RatingModel, um die Statistiken zu berechnen
+        $ratingModel = new \App\Models\RatingModel();
+
+        // Wir berechnen die Durchschnittsbewertungen für den Anbieter
+        $stats = $ratingModel
+            ->select('
+                AVG(rating_taste) as avg_taste, 
+                AVG(rating_appearance) as avg_appearance, 
+                AVG(rating_presentation) as avg_presentation, 
+                AVG(rating_price) as avg_price, 
+                AVG(rating_service) as avg_service,
+                COUNT(id) as total_ratings')
+            ->where('vendor_id', $this->vendor['id'])
+            ->first();
+
+        // Wir fügen die Statistik-Daten zum Vendor-Array hinzu
+        $vendorData = array_merge($this->vendor, $stats ?? []);
+        return view('vendor_dashboard/index', [
+            'vendor' => $vendorData,
+            'currentController' => 'VendorDashboardController',
+            'currentMethod' => 'index',
+        ]);
     }
 
-    public function edit()
+    public function edit($id = null)
     {
         if (!$this->vendor) {
             return redirect()->to('/')->with('error', 'Ihnen ist kein Anbieter zugewiesen.');
@@ -37,10 +59,12 @@ class VendorDashboardController extends BaseController
         return view('vendor_dashboard/edit', [
             'vendor' => $this->vendor,
             'opening_hours' => json_decode($this->vendor['opening_hours'], true) ?? [],
+            'currentController' => 'VendorDashboardController',
+            'currentMethod' => 'edit',
         ]);
     }
 
-    public function update()
+    public function update($id = null)
     {
         if (!$this->vendor) {
             return redirect()->to('/')->with('error', 'Ihnen ist kein Anbieter zugewiesen.');
@@ -80,5 +104,35 @@ class VendorDashboardController extends BaseController
 
         return redirect()->back()->withInput()
             ->with('toast', ['message' => 'Aktualisierung fehlgeschlagen.', 'type' => 'danger']);
+    }
+
+    public function ajaxImageUpload()
+    {
+        $validationRule = [
+            'image' => [
+                'label' => 'Bilddatei',
+                'rules' => 'uploaded[image]|is_image[image]|max_size[image,4096]', // 4MB Limit
+            ],
+        ];
+        if (! $this->validate($validationRule)) {
+            // Wir verwenden hier jetzt den ResourceController, daher sind diese Methoden verfügbar
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $img = $this->request->getFile('image');
+
+        if ($img !== null && !$img->hasMoved()) {
+            $path = FCPATH . 'uploads/vendors/';
+            if (!is_dir($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $newName = $img->getRandomName();
+            $img->move($path, $newName);
+
+            return $this->respondCreated(['filename' => $newName]);
+        }
+
+        return $this->failServerError('Datei konnte nicht auf dem Server gespeichert werden.');
     }
 }
