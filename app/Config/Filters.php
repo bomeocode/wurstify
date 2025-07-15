@@ -36,6 +36,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'session'  => \CodeIgniter\Shield\Filters\SessionAuth::class,
         'admin' => \App\Filters\AdminAuthFilter::class,
+        'maintenance' => \App\Filters\MaintenanceFilter::class,
     ];
 
     /**
@@ -71,6 +72,9 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
+            'maintenance' => [
+                'except' => ['login', 'login/*', 'logout', 'admin', 'admin/*']
+            ],
             // 'honeypot',
             'csrf' => ['except' => ['media/upload']],
             // 'invalidchars',

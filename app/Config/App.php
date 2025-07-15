@@ -19,6 +19,14 @@ class App extends BaseConfig
     public string $baseURL = 'http://localhost:8080/';
 
     /**
+     * Schaltet den Wartungsmodus an oder aus.
+     * Kann durch `maintenance.mode` in der .env-Datei überschrieben werden.
+     *
+     * @var bool
+     */
+    public bool $maintenanceMode = false;
+
+    /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
      * If you want to accept multiple Hostnames, set this.
      *
