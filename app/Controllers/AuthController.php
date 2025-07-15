@@ -51,6 +51,13 @@ class AuthController extends BaseController
             return redirect()->route('login')->withInput()->with('error', $result->reason());
         }
 
+        $user = auth()->user();
+
+        // Wenn der Nutzer ein Admin oder Superadmin ist, leiten wir ihn zum Admin-Dashboard.
+        if ($user->inGroup('admin', 'superadmin')) {
+            return redirect()->to('/admin');
+        }
+
         return redirect()->to(config('Auth')->loginRedirect());
     }
 }
