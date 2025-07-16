@@ -1,4 +1,0 @@
-Vendor Detail (Tests\Feature\Api\VendorDetail)
- [ ] Show returns success with valid uuid
- [ ] Show returns not found with invalid uuid
-
