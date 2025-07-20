@@ -35,7 +35,7 @@ class AuthController extends BaseController
         // Der Rest der Logik bleibt unverändert
         $credential = $this->request->getPost('credential');
         $password = $this->request->getPost('password');
-        $remember = (bool) $this->request->getPost('remember');
+        $remember = true; //(bool) $this->request->getPost('remember');
 
         $isEmail = filter_var($credential, FILTER_VALIDATE_EMAIL);
 
