@@ -50,7 +50,7 @@ class RatingController extends ResourceController
 
         if ($existingVote) {
             // Stimme entfernen
-            $voteModel->delete($existingVote['id']);
+            $voteModel->where('rating_id', $ratingId)->where('user_id', $userId)->delete();
             $ratingModel->where('id', $ratingId)->decrement('helpful_count');
             $voted = false;
         } else {
