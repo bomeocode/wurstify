@@ -20,7 +20,7 @@
             <td><?= $rating['id'] ?></td>
             <td><?= esc($rating['vendor_name']) ?></td>
             <td><?= esc($rating['username']) ?></td>
-            <td><?= esc(character_limiter($rating['comment'], 50)) ?></td>
+            <td><?= character_limiter($rating['comment'], 50) ?></td>
             <td><?= date('d.m.Y', strtotime($rating['created_at'])) ?></td>
             <td>
               <a href="<?= site_url('admin/ratings/edit/' . $rating['id']) ?>" class="btn btn-sm btn-primary">Bearbeiten</a>
